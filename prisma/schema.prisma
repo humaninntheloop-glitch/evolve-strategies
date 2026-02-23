@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  EMPLOYEE
+  REVIEWER
+}
+
+enum DataClassification {
+  PUBLIC
+  INTERNAL
+  CONFIDENTIAL
+  RESTRICTED
+}
+
+enum RiskLevel {
+  LOW
+  MODERATE
+  HIGH
+}
+
+enum RecordStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  RECORDED
+}
+
+model Organization {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  isDemo    Boolean  @default(false) @map("is_demo")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users          User[]
+  records        Record[]
+  auditLogs      AuditLog[]
+  riskCategories RiskCategory[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             String       @id @db.Uuid
+  email          String       @unique
+  fullName       String       @map("full_name")
+  role           UserRole     @default(EMPLOYEE)
+  organizationId String       @map("organization_id") @db.Uuid
+  isActive       Boolean      @default(true) @map("is_active")
+  isSuperAdmin   Boolean      @default(false) @map("is_super_admin")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdRecords Record[]     @relation("CreatedRecords")
+  reviewedRecords Record[]    @relation("ReviewedRecords")
+  auditLogs      AuditLog[]
+
+  @@index([organizationId])
+  @@map("users")
+}
+
+model Record {
+  id                     String             @id @default(uuid()) @db.Uuid
+  organizationId         String             @map("organization_id") @db.Uuid
+  creatorId              String             @map("creator_id") @db.Uuid
+  reviewerId             String?            @map("reviewer_id") @db.Uuid
+  intendedUseDescription String             @map("intended_use_description")
+  aiToolUsed             String             @map("ai_tool_used")
+  dataClassification     DataClassification @map("data_classification")
+  riskLevel              RiskLevel?         @map("risk_level")
+  riskJustification      String?            @map("risk_justification")
+  status                 RecordStatus       @default(DRAFT)
+  reviewComment          String?            @map("review_comment")
+  submittedAt            DateTime?          @map("submitted_at")
+  approvedAt             DateTime?          @map("approved_at")
+  rejectedAt             DateTime?          @map("rejected_at")
+  recordedAt             DateTime?          @map("recorded_at")
+  createdAt              DateTime           @default(now()) @map("created_at")
+  updatedAt              DateTime           @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  creator      User         @relation("CreatedRecords", fields: [creatorId], references: [id])
+  reviewer     User?        @relation("ReviewedRecords", fields: [reviewerId], references: [id])
+  auditLogs    AuditLog[]
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([creatorId])
+  @@map("records")
+}
+
+model AuditLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  recordId       String   @map("record_id") @db.Uuid
+  actionType     String   @map("action_type")
+  actorId        String   @map("actor_id") @db.Uuid
+  previousState  String?  @map("previous_state")
+  newState       String?  @map("new_state")
+  metadata       Json?
+  timestamp      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  record       Record       @relation(fields: [recordId], references: [id])
+  actor        User         @relation(fields: [actorId], references: [id])
+
+  @@index([organizationId])
+  @@index([recordId])
+  @@map("audit_logs")
+}
+
+model RiskCategory {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  name           String
+  description    String?
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@map("risk_categories")
+}
