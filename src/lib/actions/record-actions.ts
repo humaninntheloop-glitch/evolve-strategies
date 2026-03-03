@@ -16,7 +16,9 @@ export async function createRecord(formData: FormData): Promise<ActionResult<{ i
   const raw = {
     intendedUseDescription: formData.get("intendedUseDescription") as string,
     aiToolUsed: formData.get("aiToolUsed") as string,
-    dataClassification: formData.get("dataClassification") as string,
+    distributionContext: formData.get("distributionContext") as string,
+    dataSensitivity: formData.get("dataSensitivity") as string,
+    highStakesDecision: formData.get("highStakesDecision") as string,
   };
 
   const parsed = createRecordSchema.safeParse(raw);
@@ -31,7 +33,9 @@ export async function createRecord(formData: FormData): Promise<ActionResult<{ i
         creatorId: user.id,
         intendedUseDescription: parsed.data.intendedUseDescription,
         aiToolUsed: parsed.data.aiToolUsed,
-        dataClassification: parsed.data.dataClassification,
+        distributionContext: parsed.data.distributionContext,
+        dataSensitivity: parsed.data.dataSensitivity,
+        highStakesDecision: parsed.data.highStakesDecision,
         status: "DRAFT",
       },
     });
@@ -78,7 +82,9 @@ export async function updateRecord(
   const raw = {
     intendedUseDescription: formData.get("intendedUseDescription") as string,
     aiToolUsed: formData.get("aiToolUsed") as string,
-    dataClassification: formData.get("dataClassification") as string,
+    distributionContext: formData.get("distributionContext") as string,
+    dataSensitivity: formData.get("dataSensitivity") as string,
+    highStakesDecision: formData.get("highStakesDecision") as string,
   };
 
   const parsed = updateRecordSchema.safeParse(raw);

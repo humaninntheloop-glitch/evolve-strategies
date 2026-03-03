@@ -24,13 +24,25 @@ export async function login(formData: FormData): Promise<ActionResult> {
 
   try {
     const supabase = await createClient();
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data } = await supabase.auth.signInWithPassword({
       email: parsed.data.email,
       password: parsed.data.password,
     });
 
     if (error) {
       return { success: false, error: "Invalid email or password" };
+    }
+
+    // Check DB user exists before redirecting to dashboard
+    const { getCurrentUser } = await import("@/lib/dal/auth");
+    const user = await getCurrentUser();
+    if (!user) {
+      await supabase.auth.signOut();
+      return {
+        success: false,
+        error:
+          "No account found for this email. Contact your organization administrator for access.",
+      };
     }
 
     redirect("/dashboard");

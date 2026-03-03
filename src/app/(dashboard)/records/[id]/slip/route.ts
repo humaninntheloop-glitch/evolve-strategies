@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { requireAuth } from "@/lib/dal/auth";
 import { getRecordById } from "@/lib/dal/records";
-import { CLASSIFICATION_LABELS, RISK_LABELS } from "@/types";
+import { DISTRIBUTION_LABELS, RISK_LABELS } from "@/types";
 import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -237,21 +237,49 @@ async function generateSlipPdf(
   y -= 12;
 
   // ═══════════════════════════════════════════════════════════
-  //  CLASSIFICATION & RISK (two columns)
+  //  STRUCTURED INPUTS & RISK (three columns + risk)
   // ═══════════════════════════════════════════════════════════
 
-  const colW = contentW / 2;
+  const col4W = contentW / 4;
 
-  y = drawLabel("Data Classification", y);
-  drawText(CLASSIFICATION_LABELS[record.dataClassification], margin, y, {
+  // Distribution
+  drawText("DISTRIBUTION", margin, y, {
+    font: helveticaBold,
+    size: 7.5,
+    color: COLORS.light,
+  });
+  drawText(DISTRIBUTION_LABELS[record.distributionContext], margin, y - 14, {
     font: helveticaBold,
     size: 11,
     color: COLORS.black,
   });
 
-  // Risk level — right column, same row
-  const riskLabel = "RISK LEVEL";
-  drawText(riskLabel, margin + colW, y + 14, {
+  // Sensitive Data
+  drawText("SENSITIVE DATA", margin + col4W, y, {
+    font: helveticaBold,
+    size: 7.5,
+    color: COLORS.light,
+  });
+  drawText(record.dataSensitivity ? "Yes" : "No", margin + col4W, y - 14, {
+    font: helveticaBold,
+    size: 11,
+    color: COLORS.black,
+  });
+
+  // High-Stakes
+  drawText("HIGH-STAKES", margin + col4W * 2, y, {
+    font: helveticaBold,
+    size: 7.5,
+    color: COLORS.light,
+  });
+  drawText(record.highStakesDecision ? "Yes" : "No", margin + col4W * 2, y - 14, {
+    font: helveticaBold,
+    size: 11,
+    color: COLORS.black,
+  });
+
+  // Risk level
+  drawText("RISK LEVEL", margin + col4W * 3, y, {
     font: helveticaBold,
     size: 7.5,
     color: COLORS.light,
@@ -264,20 +292,20 @@ async function generateSlipPdf(
       ? COLORS.riskModerate
       : COLORS.riskHigh;
 
-  drawText(riskText, margin + colW, y, {
+  drawText(riskText, margin + col4W * 3, y - 14, {
     font: helveticaBold,
     size: 11,
     color: record.riskLevel ? riskColor : COLORS.medium,
   });
 
-  y -= 28;
+  y -= 42;
 
   // ═══════════════════════════════════════════════════════════
-  //  AI RISK ASSESSMENT (if present)
+  //  RISK ASSESSMENT (if present)
   // ═══════════════════════════════════════════════════════════
 
   if (record.riskJustification) {
-    y = drawLabel("AI Risk Assessment", y);
+    y = drawLabel("Risk Assessment", y);
 
     const justLines = wrapText(record.riskJustification, helvetica, 9.5, contentW - 20);
     const blockH = justLines.length * 14 + 16;

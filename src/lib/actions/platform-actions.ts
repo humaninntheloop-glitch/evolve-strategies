@@ -11,17 +11,27 @@ import type { ActionResult } from "@/types";
 
 export async function createOrganization(
   formData: FormData
-): Promise<ActionResult> {
+): Promise<ActionResult<string>> {
   await requireSuperAdmin();
 
   const raw = {
     name: formData.get("name") as string,
     isDemo: formData.get("isDemo") === "true",
+    adminEmail: formData.get("adminEmail") as string,
+    adminFullName: formData.get("adminFullName") as string,
   };
 
   const parsed = createOrganizationSchema.safeParse(raw);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  // Check if admin email already exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email: parsed.data.adminEmail },
+  });
+  if (existingUser) {
+    return { success: false, error: "A user with this admin email already exists" };
   }
 
   try {
@@ -35,8 +45,9 @@ export async function createOrganization(
       ? `${slug}-${Date.now().toString(36)}`
       : slug;
 
-    await prisma.$transaction(async (tx) => {
-      const org = await tx.organization.create({
+    // Create org + risk categories in transaction
+    const org = await prisma.$transaction(async (tx) => {
+      const newOrg = await tx.organization.create({
         data: {
           name: parsed.data.name,
           slug: finalSlug,
@@ -47,17 +58,87 @@ export async function createOrganization(
       // Create default risk categories
       await tx.riskCategory.createMany({
         data: [
-          { organizationId: org.id, name: "Data Privacy", description: "Risk related to handling personal or sensitive data" },
-          { organizationId: org.id, name: "Regulatory Compliance", description: "Risk related to regulatory requirements" },
-          { organizationId: org.id, name: "Intellectual Property", description: "Risk related to IP or proprietary information" },
-          { organizationId: org.id, name: "Operational", description: "Risk related to business operations" },
-          { organizationId: org.id, name: "Reputational", description: "Risk related to public perception" },
+          { organizationId: newOrg.id, name: "Data Privacy", description: "Risk related to handling personal or sensitive data" },
+          { organizationId: newOrg.id, name: "Regulatory Compliance", description: "Risk related to regulatory requirements" },
+          { organizationId: newOrg.id, name: "Intellectual Property", description: "Risk related to IP or proprietary information" },
+          { organizationId: newOrg.id, name: "Operational", description: "Risk related to business operations" },
+          { organizationId: newOrg.id, name: "Reputational", description: "Risk related to public perception" },
         ],
       });
+
+      return newOrg;
     });
 
+    // Create admin user using the invite pattern
+    const supabase = createServiceClient();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    const redirectTo = `${siteUrl}/auth/callback?next=/reset-password`;
+
+    // Try sending an invite email first (works when SMTP is configured)
+    const { data: inviteData, error: inviteError } =
+      await supabase.auth.admin.inviteUserByEmail(parsed.data.adminEmail, {
+        data: { full_name: parsed.data.adminFullName },
+        redirectTo,
+      });
+
+    let userId: string;
+    let setupLink = "";
+
+    if (!inviteError && inviteData.user) {
+      userId = inviteData.user.id;
+    } else {
+      // Fallback: create user manually + generate a shareable link
+      console.warn("Invite email failed, falling back to manual link:", inviteError?.message);
+
+      const tempPassword = `Temp${Math.random().toString(36).slice(2)}.${Date.now()}!`;
+      const { data: authData, error: authError } =
+        await supabase.auth.admin.createUser({
+          email: parsed.data.adminEmail,
+          password: tempPassword,
+          email_confirm: true,
+          user_metadata: { full_name: parsed.data.adminFullName },
+        });
+
+      if (authError || !authData.user) {
+        return {
+          success: false,
+          error: handleActionError(authError ?? new Error("Failed to create admin account")),
+        };
+      }
+
+      userId = authData.user.id;
+
+      const { data: linkData } = await supabase.auth.admin.generateLink({
+        type: "recovery",
+        email: parsed.data.adminEmail,
+        options: { redirectTo },
+      });
+
+      const hashedToken = linkData?.properties?.hashed_token;
+      if (hashedToken) {
+        setupLink = `${siteUrl}/auth/callback?token_hash=${hashedToken}&type=recovery&next=/reset-password`;
+      }
+    }
+
+    // Create Prisma user with ADMIN role
+    try {
+      await prisma.user.create({
+        data: {
+          id: userId,
+          email: parsed.data.adminEmail,
+          fullName: parsed.data.adminFullName,
+          role: "ADMIN",
+          organizationId: org.id,
+        },
+      });
+    } catch (dbError) {
+      // Clean up Supabase auth user if Prisma creation fails
+      await supabase.auth.admin.deleteUser(userId);
+      throw dbError;
+    }
+
     revalidatePath("/platform");
-    return { success: true, data: undefined };
+    return { success: true, data: setupLink };
   } catch (error) {
     return { success: false, error: handleActionError(error) };
   }

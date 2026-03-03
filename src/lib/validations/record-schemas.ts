@@ -9,9 +9,15 @@ export const createRecordSchema = z.object({
     .string()
     .min(1, "AI tool name is required")
     .max(200, "AI tool name must be under 200 characters"),
-  dataClassification: z.enum(["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED"], {
-    message: "Data classification is required",
+  distributionContext: z.enum(["INTERNAL", "EXTERNAL"], {
+    message: "Distribution context is required",
   }),
+  dataSensitivity: z
+    .enum(["true", "false"], { message: "Data sensitivity is required" })
+    .transform((v) => v === "true"),
+  highStakesDecision: z
+    .enum(["true", "false"], { message: "High-stakes decision is required" })
+    .transform((v) => v === "true"),
 });
 
 export const updateRecordSchema = createRecordSchema.partial();

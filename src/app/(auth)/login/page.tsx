@@ -8,9 +8,12 @@ import { ArrowRight, SpinnerGap, Eye, EyeSlash, WarningCircle } from "@phosphor-
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const authError = searchParams.get("error") === "auth"
+  const errorParam = searchParams.get("error");
+  const authError = errorParam === "auth"
     ? "Your sign-in link has expired or is invalid. Please try again."
-    : null;
+    : errorParam === "no-account"
+      ? "No account found for this email. Contact your organization administrator for access."
+      : null;
   const [error, setError] = useState<string | null>(authError);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);

@@ -9,7 +9,7 @@ import { LifecycleBadge } from "./lifecycle-badge";
 import { RiskBadge } from "./risk-badge";
 import { RecordTimeline } from "./record-timeline";
 import { formatDate } from "@/lib/utils";
-import { CLASSIFICATION_LABELS } from "@/types";
+import { DISTRIBUTION_LABELS } from "@/types";
 import {
   submitRecord,
   approveRecord,
@@ -207,21 +207,33 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
                   {record.intendedUseDescription}
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Tool</p>
+                <p className="mt-1.5 text-sm font-medium text-on-surface">{record.aiToolUsed}</p>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Tool</p>
-                  <p className="mt-1.5 text-sm font-medium text-on-surface">{record.aiToolUsed}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Distribution</p>
+                  <p className="mt-1.5 text-sm font-medium text-on-surface">
+                    {DISTRIBUTION_LABELS[record.distributionContext]}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Data Classification</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Sensitive Data</p>
                   <p className="mt-1.5 text-sm font-medium text-on-surface">
-                    {CLASSIFICATION_LABELS[record.dataClassification]}
+                    {record.dataSensitivity ? "Yes" : "No"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">High-Stakes</p>
+                  <p className="mt-1.5 text-sm font-medium text-on-surface">
+                    {record.highStakesDecision ? "Yes" : "No"}
                   </p>
                 </div>
               </div>
               {record.riskJustification && (
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Risk Assessment</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Risk Assessment</p>
                   <div className="mt-1.5 rounded-lg border border-border-subtle bg-surface-inset px-3 py-2.5">
                     <p className="text-sm text-on-surface-secondary leading-relaxed">{record.riskJustification}</p>
                   </div>

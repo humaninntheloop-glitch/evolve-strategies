@@ -13,11 +13,9 @@ enum UserRole {
   REVIEWER
 }
 
-enum DataClassification {
-  PUBLIC
+enum DistributionContext {
   INTERNAL
-  CONFIDENTIAL
-  RESTRICTED
+  EXTERNAL
 }
 
 enum RiskLevel {
@@ -77,7 +75,9 @@ model Record {
   reviewerId             String?            @map("reviewer_id") @db.Uuid
   intendedUseDescription String             @map("intended_use_description")
   aiToolUsed             String             @map("ai_tool_used")
-  dataClassification     DataClassification @map("data_classification")
+  distributionContext    DistributionContext @map("distribution_context")
+  dataSensitivity        Boolean             @map("data_sensitivity")
+  highStakesDecision     Boolean             @map("high_stakes_decision")
   riskLevel              RiskLevel?         @map("risk_level")
   riskJustification      String?            @map("risk_justification")
   status                 RecordStatus       @default(DRAFT)

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { createOrganization } from "@/lib/actions/platform-actions";
-import { Buildings, Check } from "@phosphor-icons/react";
+import { Buildings, Check, Copy, CheckCircle, EnvelopeSimple } from "@phosphor-icons/react";
 
 export function CreateOrgDialog() {
   const [open, setOpen] = useState(false);
@@ -13,12 +13,16 @@ export function CreateOrgDialog() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
+  const [setupLink, setSetupLink] = useState("");
+  const [copied, setCopied] = useState(false);
 
   function handleClose() {
     setOpen(false);
     setError(null);
     setSuccess(false);
     setIsDemo(false);
+    setSetupLink("");
+    setCopied(false);
   }
 
   async function handleSubmit(formData: FormData) {
@@ -29,9 +33,16 @@ export function CreateOrgDialog() {
     if (!result.success) {
       setError(result.error);
     } else {
+      setSetupLink(result.data ?? "");
       setSuccess(true);
     }
     setLoading(false);
+  }
+
+  async function handleCopyLink() {
+    await navigator.clipboard.writeText(setupLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -48,8 +59,40 @@ export function CreateOrgDialog() {
             </div>
             <div className="mt-3"><DialogTitle>Organization created</DialogTitle></div>
             <DialogDescription>
-              The organization has been created with default risk categories.
+              The organization has been created with default risk categories and an admin account.
             </DialogDescription>
+
+            {setupLink ? (
+              <div className="mt-4 space-y-2">
+                <p className="text-[13px] font-medium text-on-surface">
+                  Share this setup link with the admin to set their password:
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 truncate rounded-lg border border-border-default bg-surface-inset px-3 py-2 text-xs text-on-surface-secondary">
+                    {setupLink}
+                  </code>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleCopyLink}
+                    className="shrink-0"
+                  >
+                    {copied ? (
+                      <CheckCircle className="h-4 w-4 text-emerald-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                    {copied ? "Copied" : "Copy"}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-4 flex items-center gap-2.5 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 px-3 py-2.5 text-sm text-blue-700 dark:text-blue-400">
+                <EnvelopeSimple className="h-4 w-4 shrink-0" />
+                An invite email has been sent to the admin.
+              </div>
+            )}
+
             <div className="mt-5 flex justify-end border-t border-border-subtle pt-4">
               <Button onClick={handleClose}>Done</Button>
             </div>
@@ -58,7 +101,7 @@ export function CreateOrgDialog() {
           <>
             <DialogTitle>Create Organization</DialogTitle>
             <DialogDescription>
-              Add a new organization to the platform.
+              Add a new organization to the platform with an admin account.
             </DialogDescription>
             <form action={handleSubmit} className="mt-5 space-y-4">
               {error && (
@@ -86,6 +129,31 @@ export function CreateOrgDialog() {
                   <p className="text-xs text-on-surface-tertiary">Users can switch roles freely</p>
                 </div>
               </label>
+
+              {/* Organization Admin */}
+              <div className="border-t border-border-subtle pt-4">
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">
+                  Organization Admin
+                </p>
+                <div className="space-y-3">
+                  <Input
+                    id="adminFullName"
+                    name="adminFullName"
+                    label="Full Name"
+                    required
+                    placeholder="Jane Smith"
+                  />
+                  <Input
+                    id="adminEmail"
+                    name="adminEmail"
+                    type="email"
+                    label="Email"
+                    required
+                    placeholder="jane@acme.com"
+                  />
+                </div>
+              </div>
+
               <div className="flex justify-end gap-3 border-t border-border-subtle pt-4">
                 <Button type="button" variant="secondary" onClick={handleClose}>
                   Cancel

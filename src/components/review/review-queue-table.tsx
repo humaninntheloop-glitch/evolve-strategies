@@ -2,7 +2,7 @@ import Link from "next/link";
 import { LifecycleBadge } from "@/components/records/lifecycle-badge";
 import { RiskBadge } from "@/components/records/risk-badge";
 import { formatDate } from "@/lib/utils";
-import { CLASSIFICATION_LABELS } from "@/types";
+import { DISTRIBUTION_LABELS } from "@/types";
 import type { RecordWithRelations } from "@/types";
 import { ArrowRight, Tray } from "@phosphor-icons/react/ssr";
 
@@ -35,7 +35,7 @@ export function ReviewQueueTable({ records }: ReviewQueueTableProps) {
               Submitted By
             </th>
             <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">
-              Classification
+              Distribution
             </th>
             <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">
               Risk
@@ -62,7 +62,7 @@ export function ReviewQueueTable({ records }: ReviewQueueTableProps) {
                 {record.creator.fullName}
               </td>
               <td className="px-4 py-3.5 text-sm text-on-surface-secondary">
-                {CLASSIFICATION_LABELS[record.dataClassification]}
+                {DISTRIBUTION_LABELS[record.distributionContext]}
               </td>
               <td className="px-4 py-3.5">
                 {record.riskLevel ? (

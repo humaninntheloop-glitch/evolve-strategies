@@ -1,11 +1,11 @@
 import type {
   UserRole,
-  DataClassification,
+  DistributionContext,
   RiskLevel,
   RecordStatus,
 } from "@/generated/prisma";
 
-export type { UserRole, DataClassification, RiskLevel, RecordStatus };
+export type { UserRole, DistributionContext, RiskLevel, RecordStatus };
 
 export type ActionResult<T = void> =
   | { success: true; data: T }
@@ -30,7 +30,9 @@ export interface RecordWithRelations {
   reviewerId: string | null;
   intendedUseDescription: string;
   aiToolUsed: string;
-  dataClassification: DataClassification;
+  distributionContext: DistributionContext;
+  dataSensitivity: boolean;
+  highStakesDecision: boolean;
   riskLevel: RiskLevel | null;
   riskJustification: string | null;
   status: RecordStatus;
@@ -82,11 +84,9 @@ export const RISK_LABELS: Record<RiskLevel, string> = {
   HIGH: "High",
 };
 
-export const CLASSIFICATION_LABELS: Record<DataClassification, string> = {
-  PUBLIC: "Public",
+export const DISTRIBUTION_LABELS: Record<DistributionContext, string> = {
   INTERNAL: "Internal",
-  CONFIDENTIAL: "Confidential",
-  RESTRICTED: "Restricted",
+  EXTERNAL: "External",
 };
 
 export const ROLE_LABELS: Record<UserRole, string> = {

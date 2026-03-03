@@ -29,7 +29,13 @@ export const getCurrentUser = cache(async (): Promise<AuthUser | null> => {
     },
   });
 
-  if (!dbUser || !dbUser.isActive) return null;
+  if (!dbUser || !dbUser.isActive) {
+    // Auth session exists but no DB user (or inactive) — sign out to prevent
+    // a redirect loop between middleware (sees session → allows dashboard)
+    // and requireAuth (no DB user → redirects to login).
+    await supabase.auth.signOut();
+    return null;
+  }
 
   return {
     id: dbUser.id,
@@ -47,7 +53,7 @@ export const getCurrentUser = cache(async (): Promise<AuthUser | null> => {
 export async function requireAuth(): Promise<AuthUser> {
   const user = await getCurrentUser();
   if (!user) {
-    redirect("/login");
+    redirect("/login?error=no-account");
   }
   return user;
 }

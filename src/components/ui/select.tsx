@@ -3,19 +3,25 @@ import { cn } from "@/lib/utils";
 
 export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
+  description?: string;
   error?: string;
   options: { value: string; label: string }[];
   placeholder?: string;
 }
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, error, id, options, placeholder, ...props }, ref) => {
+  ({ className, label, description, error, id, options, placeholder, ...props }, ref) => {
     return (
       <div>
         {label && (
-          <label htmlFor={id} className="block text-sm font-medium text-on-surface mb-1.5">
+          <label htmlFor={id} className="block text-sm font-medium text-on-surface mb-1">
             {label}
           </label>
+        )}
+        {description && (
+          <p className="mb-1.5 text-xs text-on-surface-tertiary">
+            {description}
+          </p>
         )}
         <select
           ref={ref}

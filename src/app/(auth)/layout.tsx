@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { SealCheck } from "@phosphor-icons/react/ssr";
 
 export default function AuthLayout({
@@ -16,14 +17,13 @@ export default function AuthLayout({
         {/* Content */}
         <div className="relative z-10 flex flex-1 flex-col justify-between p-10">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 text-white font-bold text-base tracking-tight">
-              H
-            </div>
-            <span className="text-[15px] font-semibold text-white tracking-tight">
-              Human In The Loop
-            </span>
-          </div>
+          <Image
+            src="/logo-with-text.png"
+            alt="Human In The Loop Governance"
+            width={240}
+            height={56}
+            priority
+          />
 
           {/* Hero text */}
           <div className="space-y-10">
@@ -65,13 +65,14 @@ export default function AuthLayout({
       <div className="relative flex flex-1 flex-col bg-surface">
         {/* Mobile header */}
         <div className="relative lg:hidden border-b border-border-subtle">
-          <div className="flex items-center gap-2.5 px-6 py-4">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 text-white font-bold text-xs tracking-tight">
-              H
-            </div>
-            <span className="text-sm font-semibold text-on-surface tracking-tight">
-              Human In The Loop
-            </span>
+          <div className="flex items-center px-6 py-4">
+            <Image
+              src="/logo-with-text.png"
+              alt="Human In The Loop Governance"
+              width={180}
+              height={42}
+              priority
+            />
           </div>
         </div>
 

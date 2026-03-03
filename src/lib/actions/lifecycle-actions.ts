@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/dal/auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/dal/audit-logs";
 import { validateTransition } from "@/lib/lifecycle/state-machine";
-import { classifyRisk } from "@/lib/actions/ai-actions";
+import { classifyRisk } from "@/lib/risk-classification";
 import { handleActionError } from "@/lib/errors";
 import type { ActionResult, RecordStatus } from "@/types";
 
@@ -114,11 +114,12 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
   }
 
   try {
-    // Classify risk via AI
-    const riskResult = await classifyRisk(
-      record.intendedUseDescription,
-      record.dataClassification
-    );
+    // Deterministic risk classification
+    const riskResult = classifyRisk({
+      distributionContext: record.distributionContext,
+      dataSensitivity: record.dataSensitivity,
+      highStakesDecision: record.highStakesDecision,
+    });
 
     // Update record with risk classification and submit
     await prisma.record.update({
