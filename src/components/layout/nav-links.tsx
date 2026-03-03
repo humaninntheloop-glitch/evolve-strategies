@@ -9,7 +9,6 @@ import {
   Scroll,
   Users,
   GearSix,
-  Tag,
   Buildings,
   Flask,
 } from "@phosphor-icons/react";
@@ -31,7 +30,6 @@ const links: NavLink[] = [
   { href: "/review", label: "Review Queue", icon: ClipboardText, roles: ["REVIEWER", "ADMIN"], section: "Workflow" },
   { href: "/audit-log", label: "Audit Log", icon: Scroll, roles: ["ADMIN"], section: "Workflow" },
   { href: "/admin/users", label: "Users", icon: Users, roles: ["ADMIN"], section: "Admin" },
-  { href: "/admin/risk-categories", label: "Risk Categories", icon: Tag, roles: ["ADMIN"], section: "Admin" },
   { href: "/admin", label: "Settings", icon: GearSix, roles: ["ADMIN"], section: "Admin" },
   { href: "/platform", label: "Organizations", icon: Buildings, section: "Platform", superAdminOnly: true },
   { href: "/platform/demo-accounts", label: "Demo Accounts", icon: Flask, section: "Platform", superAdminOnly: true },

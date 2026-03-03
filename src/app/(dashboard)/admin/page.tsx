@@ -4,7 +4,7 @@ import { getDashboardStats } from "@/lib/dal/records";
 import { getUsersByOrg } from "@/lib/dal/users";
 import { Card } from "@/components/ui/card";
 import { OrgNameForm } from "@/components/admin/org-name-form";
-import { Users, Tag, ChartBar, ArrowRight } from "@phosphor-icons/react/ssr";
+import { Users, ChartBar, ArrowRight } from "@phosphor-icons/react/ssr";
 import { cn } from "@/lib/utils";
 
 export default async function AdminPage() {
@@ -22,14 +22,6 @@ export default async function AdminPage() {
       icon: Users,
       iconColor: "text-blue-600 dark:text-blue-400",
       iconBg: "bg-blue-50 dark:bg-blue-900/30",
-    },
-    {
-      href: "/admin/risk-categories",
-      title: "Risk Categories",
-      description: "Configure risk assessment categories",
-      icon: Tag,
-      iconColor: "text-amber-600 dark:text-amber-400",
-      iconBg: "bg-amber-50 dark:bg-amber-900/30",
     },
     {
       href: "/audit-log",
