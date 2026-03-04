@@ -30,10 +30,12 @@ export function RecordForm({ record }: RecordFormProps) {
   const [loading, setLoading] = useState(false);
   const isEdit = !!record;
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setLoading(true);
     setError(null);
 
+    const formData = new FormData(e.currentTarget);
     let result;
     if (isEdit) {
       result = await updateRecord(record.id, formData);
@@ -51,7 +53,7 @@ export function RecordForm({ record }: RecordFormProps) {
 
   return (
     <Card>
-      <form action={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Authorization Declaration */}
         <div className="rounded-lg border border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-900/20 px-4 py-3">
           <p className="text-sm font-medium text-brand-800 dark:text-brand-300">

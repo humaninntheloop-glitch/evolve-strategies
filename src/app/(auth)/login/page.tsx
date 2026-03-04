@@ -19,9 +19,11 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [shakeForm, setShakeForm] = useState(false);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setLoading(true);
     setError(null);
+    const formData = new FormData(e.currentTarget);
     const result = await login(formData);
     if (result && !result.success) {
       setError(result.error);
@@ -45,7 +47,7 @@ function LoginForm() {
 
       {/* Form */}
       <form
-        action={handleSubmit}
+        onSubmit={handleSubmit}
         className={`space-y-4 ${shakeForm ? "animate-shake" : ""}`}
       >
         {error && (

@@ -47,10 +47,12 @@ export default function ResetPasswordPage() {
   const passwordsMismatch =
     confirmPassword.length > 0 && password !== confirmPassword;
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setLoading(true);
     setError(null);
 
+    const formData = new FormData(e.currentTarget);
     const pw = formData.get("password") as string;
     const cpw = formData.get("confirmPassword") as string;
 
@@ -85,7 +87,7 @@ export default function ResetPasswordPage() {
 
       {/* Form */}
       <form
-        action={handleSubmit}
+        onSubmit={handleSubmit}
         className={`space-y-4 ${shakeForm ? "animate-shake" : ""}`}
       >
         {error && (

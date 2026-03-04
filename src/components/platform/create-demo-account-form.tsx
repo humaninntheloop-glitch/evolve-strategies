@@ -32,7 +32,9 @@ export function CreateDemoAccountDialog({ organizations }: CreateDemoAccountDial
     setCopied(false);
   }
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
     const orgId = formData.get("organizationId") as string;
     if (!orgId) return;
 
@@ -96,7 +98,7 @@ export function CreateDemoAccountDialog({ organizations }: CreateDemoAccountDial
             <DialogDescription>
               Select a demo organization to create an account in.
             </DialogDescription>
-            <form action={handleSubmit} className="mt-5 space-y-4">
+            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
               {error && (
                 <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
                   {error}

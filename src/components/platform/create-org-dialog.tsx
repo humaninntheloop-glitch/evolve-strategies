@@ -25,9 +25,11 @@ export function CreateOrgDialog() {
     setCopied(false);
   }
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setLoading(true);
     setError(null);
+    const formData = new FormData(e.currentTarget);
     formData.set("isDemo", isDemo.toString());
     const result = await createOrganization(formData);
     if (!result.success) {
@@ -103,7 +105,7 @@ export function CreateOrgDialog() {
             <DialogDescription>
               Add a new organization to the platform with an admin account.
             </DialogDescription>
-            <form action={handleSubmit} className="mt-5 space-y-4">
+            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
               {error && (
                 <div className="flex items-center gap-2.5 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-3 py-2.5 text-sm text-red-700 dark:text-red-400">
                   <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />

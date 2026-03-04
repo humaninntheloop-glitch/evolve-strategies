@@ -38,7 +38,7 @@ const TRANSITION_RULES: TransitionRule[] = [
     to: "APPROVED",
     allowedRoles: ["REVIEWER", "ADMIN"],
     condition: (ctx) => {
-      if (ctx.actorId === ctx.creatorId) {
+      if (ctx.actorId === ctx.creatorId && ctx.actorRole !== "ADMIN") {
         return { allowed: false, reason: "Cannot approve your own record" };
       }
       return { allowed: true };
@@ -49,7 +49,7 @@ const TRANSITION_RULES: TransitionRule[] = [
     to: "REJECTED",
     allowedRoles: ["REVIEWER", "ADMIN"],
     condition: (ctx) => {
-      if (ctx.actorId === ctx.creatorId) {
+      if (ctx.actorId === ctx.creatorId && ctx.actorRole !== "ADMIN") {
         return { allowed: false, reason: "Cannot reject your own record" };
       }
       if (!ctx.reviewComment?.trim()) {

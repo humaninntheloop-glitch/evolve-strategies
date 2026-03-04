@@ -25,9 +25,11 @@ export default function ForgotPasswordPage() {
     return () => clearTimeout(timer);
   }, [cooldown]);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setLoading(true);
     setError(null);
+    const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const result = await forgotPassword(formData);
     if (result.success) {
@@ -122,7 +124,7 @@ export default function ForgotPasswordPage() {
 
       {/* Form */}
       <form
-        action={handleSubmit}
+        onSubmit={handleSubmit}
         className={`space-y-4 ${shakeForm ? "animate-shake" : ""}`}
       >
         {error && (

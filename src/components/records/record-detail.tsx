@@ -20,7 +20,7 @@ import {
 import { deleteRecord } from "@/lib/actions/record-actions";
 import { Dialog, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { PencilSimple, Trash, PaperPlaneTilt, CheckCircle, XCircle, Lock, ArrowCounterClockwise, DownloadSimple } from "@phosphor-icons/react";
+import { PencilSimple, Trash, PaperPlaneTilt, CheckCircle, XCircle, Lock, ArrowCounterClockwise, DownloadSimple, CircleNotch } from "@phosphor-icons/react";
 import type { RecordWithRelations, AuditLogEntry, RecordStatus, AuthUser } from "@/types";
 import { getAvailableTransitions } from "@/lib/lifecycle/state-machine";
 
@@ -36,6 +36,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
   const [error, setError] = useState<string | null>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectComment, setRejectComment] = useState("");
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const availableTransitions = getAvailableTransitions(
     record.status,
@@ -162,12 +163,36 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
         </div>
         <div className="flex items-center gap-2">
           {record.status === "RECORDED" && (
-            <a href={`/records/${record.id}/slip`} download>
-              <Button size="sm" variant="secondary">
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={isDownloading}
+              onClick={async () => {
+                setIsDownloading(true);
+                try {
+                  const res = await fetch(`/records/${record.id}/slip`);
+                  if (!res.ok) throw new Error("Download failed");
+                  const blob = await res.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `HITL-Record-${record.id.slice(0, 8).toUpperCase()}.pdf`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } catch {
+                  // silently fail — user can retry
+                } finally {
+                  setIsDownloading(false);
+                }
+              }}
+            >
+              {isDownloading ? (
+                <CircleNotch className="h-3.5 w-3.5 animate-spin" />
+              ) : (
                 <DownloadSimple className="h-3.5 w-3.5" />
-                Download Slip
-              </Button>
-            </a>
+              )}
+              {isDownloading ? "Downloading…" : "Download Slip"}
+            </Button>
           )}
           {canEdit && (
             <Link href={`/records/${record.id}/edit`}>
