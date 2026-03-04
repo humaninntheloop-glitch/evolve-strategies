@@ -17,7 +17,6 @@ import {
   Plus,
   ArrowRight,
   ClipboardText,
-  TrendUp,
 } from "@phosphor-icons/react/ssr";
 
 export default async function DashboardPage() {
@@ -223,18 +222,6 @@ export default async function DashboardPage() {
                 </Link>
               )}
 
-              {user.role === "ADMIN" && (
-                <Link href="/audit-log" className="group block">
-                  <Card className="flex items-center gap-3 py-3 px-4 transition-all duration-150 hover:shadow-md hover:border-border-strong">
-                    <TrendUp className="h-5 w-5 text-emerald-500 dark:text-emerald-400" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-on-surface">Audit Log</p>
-                      <p className="text-xs text-on-surface-quaternary">View all activity</p>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-on-surface-quaternary transition-transform group-hover:translate-x-0.5" />
-                  </Card>
-                </Link>
-              )}
             </div>
           </div>
         </div>

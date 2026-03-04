@@ -38,8 +38,6 @@ export async function updateSession(request: NextRequest) {
   const isAuthPage =
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/signup") ||
-    request.nextUrl.pathname.startsWith("/forgot-password") ||
-    request.nextUrl.pathname.startsWith("/reset-password") ||
     request.nextUrl.pathname.startsWith("/auth");
 
   if (!user && !isAuthPage && request.nextUrl.pathname !== "/") {
@@ -49,8 +47,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Redirect authenticated users away from auth pages
-  // Exception: allow /reset-password so invited users can set their password after callback
-  if (user && isAuthPage && !request.nextUrl.pathname.startsWith("/reset-password")) {
+  if (user && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

@@ -11,26 +11,18 @@ export async function GET(request: Request) {
 
   const supabase = await createClient();
 
-  // PKCE code exchange flow (e.g. login, signup, invite, recovery)
+  // PKCE code exchange flow (e.g. login, signup)
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      // Invite and recovery flows should land on the password setup page
-      if (type === "invite" || type === "recovery") {
-        return NextResponse.redirect(`${origin}/reset-password`);
-      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
-  // Token hash flow (e.g. invite, recovery, magiclink)
+  // Token hash flow (e.g. magiclink)
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ token_hash, type });
     if (!error) {
-      // Invite and recovery flows should land on the password setup page
-      if (type === "invite" || type === "recovery") {
-        return NextResponse.redirect(`${origin}/reset-password`);
-      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

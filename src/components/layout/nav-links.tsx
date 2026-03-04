@@ -6,11 +6,7 @@ import {
   SquaresFour,
   FileText,
   ClipboardText,
-  Scroll,
-  Users,
   GearSix,
-  Buildings,
-  Flask,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types";
@@ -28,11 +24,7 @@ const links: NavLink[] = [
   { href: "/dashboard", label: "Dashboard", icon: SquaresFour, section: "Overview" },
   { href: "/records", label: "Records", icon: FileText, section: "Overview" },
   { href: "/review", label: "Review Queue", icon: ClipboardText, roles: ["REVIEWER", "ADMIN"], section: "Workflow" },
-  { href: "/audit-log", label: "Audit Log", icon: Scroll, roles: ["ADMIN"], section: "Workflow" },
-  { href: "/admin/users", label: "Users", icon: Users, roles: ["ADMIN"], section: "Admin" },
   { href: "/admin", label: "Settings", icon: GearSix, roles: ["ADMIN"], section: "Admin" },
-  { href: "/platform", label: "Organizations", icon: Buildings, section: "Platform", superAdminOnly: true },
-  { href: "/platform/demo-accounts", label: "Demo Accounts", icon: Flask, section: "Platform", superAdminOnly: true },
 ];
 
 interface NavLinksProps {
@@ -67,7 +59,7 @@ export function NavLinks({ role, isSuperAdmin = false }: NavLinksProps) {
           <div className="flex flex-col gap-0.5">
             {sectionLinks.map((link) => {
               const isActive =
-                link.href === "/dashboard" || link.href === "/admin" || link.href === "/platform"
+                link.href === "/dashboard" || link.href === "/admin"
                   ? pathname === link.href
                   : pathname.startsWith(link.href);
               const Icon = link.icon;

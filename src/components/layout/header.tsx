@@ -3,7 +3,6 @@
 import { SignOut, UserCircle } from "@phosphor-icons/react";
 import { logout } from "@/lib/actions/auth-actions";
 import { Badge } from "@/components/ui/badge";
-import { RoleSwitcher } from "@/components/layout/role-switcher";
 import { ROLE_LABELS } from "@/types";
 import type { AuthUser } from "@/types";
 
@@ -18,19 +17,13 @@ export function Header({ user }: HeaderProps) {
     REVIEWER: "green" as const,
   };
 
-  const showRoleSwitcher = user.isSuperAdmin || user.isDemo;
-
   return (
     <header className="flex h-14 items-center justify-between border-b border-border-default bg-surface-elevated px-6">
       <div />
       <div className="flex items-center gap-3">
-        {showRoleSwitcher ? (
-          <RoleSwitcher currentRole={user.role} />
-        ) : (
-          <Badge variant={roleBadgeVariant[user.role]}>
-            {ROLE_LABELS[user.role]}
-          </Badge>
-        )}
+        <Badge variant={roleBadgeVariant[user.role]}>
+          {ROLE_LABELS[user.role]}
+        </Badge>
         <div className="h-4 w-px bg-border-default" />
         <div className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-100 ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700">
