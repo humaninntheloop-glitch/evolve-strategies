@@ -2,10 +2,6 @@ import { z } from "zod";
 
 export const createRecordSchema = z
   .object({
-    intendedUseDescription: z
-      .string()
-      .min(10, "Description must be at least 10 characters")
-      .max(2000, "Description must be under 2000 characters"),
     aiToolUsed: z
       .string()
       .min(1, "AI tool name is required")
@@ -49,11 +45,6 @@ export const createRecordSchema = z
 
 export const updateRecordSchema = z
   .object({
-    intendedUseDescription: z
-      .string()
-      .min(10, "Description must be at least 10 characters")
-      .max(2000, "Description must be under 2000 characters")
-      .optional(),
     aiToolUsed: z
       .string()
       .min(1, "AI tool name is required")

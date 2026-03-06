@@ -249,12 +249,6 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             <CardTitle>Record Details</CardTitle>
             <div className="mt-5 space-y-5">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Intended Use</p>
-                <p className="mt-1.5 text-sm text-on-surface-secondary whitespace-pre-wrap leading-relaxed">
-                  {record.intendedUseDescription}
-                </p>
-              </div>
-              <div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Tool</p>
                 <p className="mt-1.5 text-sm font-medium text-on-surface">{record.aiToolUsed}</p>
               </div>

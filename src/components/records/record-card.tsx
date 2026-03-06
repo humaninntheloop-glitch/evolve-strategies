@@ -5,6 +5,7 @@ import { RiskBadge } from "./risk-badge";
 import { formatDate } from "@/lib/utils";
 import { ArrowUpRight } from "@phosphor-icons/react/ssr";
 import { cn } from "@/lib/utils";
+import { AI_OUTPUT_IMPACT_LABELS } from "@/types";
 import type { RecordWithRelations } from "@/types";
 import type { RecordStatus } from "@/types";
 
@@ -35,9 +36,11 @@ export function RecordCard({ record }: RecordCardProps) {
               </p>
               <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-on-surface-quaternary opacity-0 transition-opacity group-hover:opacity-100" />
             </div>
-            <p className="mt-1.5 line-clamp-2 text-sm text-on-surface-secondary leading-relaxed">
-              {record.intendedUseDescription}
-            </p>
+            {record.aiOutputImpact && (
+              <p className="mt-1 text-xs text-on-surface-tertiary">
+                {AI_OUTPUT_IMPACT_LABELS[record.aiOutputImpact]}
+              </p>
+            )}
           </div>
           <div className="flex shrink-0 flex-col items-end gap-2">
             <LifecycleBadge status={record.status} />

@@ -54,9 +54,11 @@ export function ReviewQueueTable({ records }: ReviewQueueTableProps) {
             <tr key={record.id} className="transition-colors duration-150 hover:bg-surface-inset">
               <td className="px-4 py-3.5">
                 <p className="text-sm font-medium text-on-surface">{record.aiToolUsed}</p>
-                <p className="mt-0.5 line-clamp-1 text-xs text-on-surface-quaternary">
-                  {record.intendedUseDescription}
-                </p>
+                {record.aiOutputImpact && (
+                  <p className="mt-0.5 text-xs text-on-surface-quaternary">
+                    {AI_OUTPUT_IMPACT_LABELS[record.aiOutputImpact]}
+                  </p>
+                )}
               </td>
               <td className="px-4 py-3.5 text-sm text-on-surface-secondary">
                 {record.creator.fullName}

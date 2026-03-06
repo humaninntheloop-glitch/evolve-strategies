@@ -134,7 +134,6 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
     // Generate AI summary (non-blocking — uses fallback on failure)
     const aiSummary = await generateAiSummary({
       aiToolUsed: record.aiToolUsed,
-      intendedUseDescription: record.intendedUseDescription,
       aiOutputImpact: record.aiOutputImpact ?? "UNKNOWN",
       aiUsageType: record.aiUsageType,
       humanReviewPlan: record.humanReviewPlan,

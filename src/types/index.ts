@@ -29,7 +29,7 @@ export interface RecordWithRelations {
   organizationId: string;
   creatorId: string;
   reviewerId: string | null;
-  intendedUseDescription: string;
+  intendedUseDescription: string | null;
   aiToolUsed: string;
   distributionContext: DistributionContext | null;
   dataSensitivity: boolean;

@@ -32,7 +32,6 @@ export async function createRecord(formData: FormData): Promise<ActionResult<{ i
   const user = await requireAuth();
 
   const raw = {
-    intendedUseDescription: formData.get("intendedUseDescription") as string,
     aiToolUsed: formData.get("aiToolUsed") as string,
     aiOutputImpact: formData.get("aiOutputImpact") as string,
     dataSensitivity: formData.get("dataSensitivity") as string,
@@ -54,7 +53,6 @@ export async function createRecord(formData: FormData): Promise<ActionResult<{ i
       data: {
         organizationId: user.organizationId,
         creatorId: user.id,
-        intendedUseDescription: parsed.data.intendedUseDescription,
         aiToolUsed: parsed.data.aiToolUsed,
         aiOutputImpact: impact,
         dataSensitivity: parsed.data.dataSensitivity,
@@ -109,7 +107,6 @@ export async function updateRecord(
   }
 
   const raw = {
-    intendedUseDescription: formData.get("intendedUseDescription") as string,
     aiToolUsed: formData.get("aiToolUsed") as string,
     aiOutputImpact: formData.get("aiOutputImpact") as string,
     dataSensitivity: formData.get("dataSensitivity") as string,

@@ -2,7 +2,6 @@ import OpenAI from "openai";
 
 interface SummaryInput {
   aiToolUsed: string;
-  intendedUseDescription: string;
   aiOutputImpact: string;
   aiUsageType: string[];
   humanReviewPlan: string[];
@@ -27,7 +26,6 @@ export async function generateAiSummary(input: SummaryInput): Promise<string> {
 
 Record details:
 - AI Tool: ${input.aiToolUsed}
-- Intended Use: ${input.intendedUseDescription}
 - AI Output Impact: ${input.aiOutputImpact}
 - AI Usage Types: ${input.aiUsageType.join(", ")}
 - Human Review Plan: ${input.humanReviewPlan.join(", ")}

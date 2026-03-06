@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { CheckboxGroup } from "@/components/ui/checkbox-group";
@@ -74,16 +73,6 @@ export function RecordForm({ record }: RecordFormProps) {
             {error}
           </div>
         )}
-
-        <Textarea
-          id="intendedUseDescription"
-          name="intendedUseDescription"
-          label="Intended Use Description"
-          placeholder="Describe how you intend to use AI output in this workflow..."
-          rows={5}
-          required
-          defaultValue={record?.intendedUseDescription}
-        />
 
         <Input
           id="aiToolUsed"
