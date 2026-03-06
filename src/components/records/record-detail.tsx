@@ -9,7 +9,12 @@ import { LifecycleBadge } from "./lifecycle-badge";
 import { RiskBadge } from "./risk-badge";
 import { RecordTimeline } from "./record-timeline";
 import { formatDate } from "@/lib/utils";
-import { DISTRIBUTION_LABELS } from "@/types";
+import {
+  AI_OUTPUT_IMPACT_LABELS,
+  AI_USAGE_TYPE_LABELS,
+  HUMAN_REVIEW_PLAN_LABELS,
+  DISTRIBUTION_LABELS,
+} from "@/types";
 import {
   submitRecord,
   approveRecord,
@@ -20,7 +25,7 @@ import {
 import { deleteRecord } from "@/lib/actions/record-actions";
 import { Dialog, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { PencilSimple, Trash, PaperPlaneTilt, CheckCircle, XCircle, Lock, ArrowCounterClockwise, DownloadSimple, CircleNotch } from "@phosphor-icons/react";
+import { PencilSimple, Trash, PaperPlaneTilt, CheckCircle, XCircle, Lock, ArrowCounterClockwise, DownloadSimple, CircleNotch, Sparkle } from "@phosphor-icons/react";
 import type { RecordWithRelations, AuditLogEntry, RecordStatus, AuthUser } from "@/types";
 import { getAvailableTransitions } from "@/lib/lifecycle/state-machine";
 
@@ -36,6 +41,8 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
   const [error, setError] = useState<string | null>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectComment, setRejectComment] = useState("");
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [approveComment, setApproveComment] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
 
   const availableTransitions = getAvailableTransitions(
@@ -47,6 +54,9 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
 
   const canEdit = record.status === "DRAFT" && (record.creatorId === user.id || user.role === "ADMIN");
   const canDelete = record.status === "DRAFT" && (record.creatorId === user.id || user.role === "ADMIN");
+
+  // Determine if record uses new structured fields or legacy fields
+  const hasNewFields = !!record.aiOutputImpact;
 
   async function handleAction(action: () => Promise<{ success: boolean; error?: string }>) {
     setLoading(true);
@@ -71,6 +81,18 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
     setLoading(false);
   }
 
+  async function handleApprove() {
+    setLoading(true);
+    setError(null);
+    const result = await approveRecord(record.id, approveComment.trim() || undefined);
+    if (!result.success) {
+      setError(result.error ?? "Authorization failed");
+    }
+    setApproveDialogOpen(false);
+    setApproveComment("");
+    setLoading(false);
+  }
+
   function renderActions(transition: RecordStatus) {
     switch (transition) {
       case "SUBMITTED":
@@ -91,10 +113,10 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             key="approve"
             size="sm"
             disabled={loading}
-            onClick={() => handleAction(() => approveRecord(record.id))}
+            onClick={() => setApproveDialogOpen(true)}
           >
             <CheckCircle className="h-3.5 w-3.5" />
-            Approve
+            Authorize AI Reliance
           </Button>
         );
       case "REJECTED":
@@ -107,7 +129,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             onClick={() => setRejectDialogOpen(true)}
           >
             <XCircle className="h-3.5 w-3.5" />
-            Reject
+            Reject AI Reliance
           </Button>
         );
       case "RECORDED":
@@ -176,7 +198,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement("a");
                   a.href = url;
-                  a.download = `HITL-Record-${record.id.slice(0, 8).toUpperCase()}.pdf`;
+                  a.download = `AI-Authorization-Slip-${record.id.slice(0, 8).toUpperCase()}.pdf`;
                   a.click();
                   URL.revokeObjectURL(url);
                 } catch {
@@ -191,7 +213,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
               ) : (
                 <DownloadSimple className="h-3.5 w-3.5" />
               )}
-              {isDownloading ? "Downloading…" : "Download Slip"}
+              {isDownloading ? "Downloading..." : "Download Authorization Slip"}
             </Button>
           )}
           {canEdit && (
@@ -236,26 +258,121 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Tool</p>
                 <p className="mt-1.5 text-sm font-medium text-on-surface">{record.aiToolUsed}</p>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+
+              {/* New structured fields */}
+              {hasNewFields && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Output Impact</p>
+                      <p className="mt-1.5 text-sm font-medium text-on-surface">
+                        {record.aiOutputImpact ? AI_OUTPUT_IMPACT_LABELS[record.aiOutputImpact] : "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Sensitive Data</p>
+                      <p className="mt-1.5 text-sm font-medium text-on-surface">
+                        {record.dataSensitivity ? "Yes" : "No"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {record.aiUsageType.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Usage Type</p>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {record.aiUsageType.map((type) => (
+                          <span
+                            key={type}
+                            className="inline-flex items-center rounded-md bg-surface-inset px-2 py-1 text-xs font-medium text-on-surface-secondary"
+                          >
+                            {AI_USAGE_TYPE_LABELS[type] ?? type}
+                          </span>
+                        ))}
+                      </div>
+                      {record.aiUsageTypeOther && (
+                        <p className="mt-1.5 text-sm text-on-surface-tertiary italic">
+                          Other: {record.aiUsageTypeOther}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {record.humanReviewPlan.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Human Review Plan</p>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {record.humanReviewPlan.map((plan) => (
+                          <span
+                            key={plan}
+                            className="inline-flex items-center rounded-md bg-surface-inset px-2 py-1 text-xs font-medium text-on-surface-secondary"
+                          >
+                            {HUMAN_REVIEW_PLAN_LABELS[plan] ?? plan}
+                          </span>
+                        ))}
+                      </div>
+                      {record.humanReviewPlanOther && (
+                        <p className="mt-1.5 text-sm text-on-surface-tertiary italic">
+                          Other: {record.humanReviewPlanOther}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Legacy fields for old records */}
+              {!hasNewFields && (
+                <>
+                  {record.aiJustification && (
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Justification</p>
+                      <p className="mt-1.5 text-sm text-on-surface-secondary whitespace-pre-wrap leading-relaxed">
+                        {record.aiJustification}
+                      </p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Distribution</p>
+                      <p className="mt-1.5 text-sm font-medium text-on-surface">
+                        {record.distributionContext ? DISTRIBUTION_LABELS[record.distributionContext] : "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Sensitive Data</p>
+                      <p className="mt-1.5 text-sm font-medium text-on-surface">
+                        {record.dataSensitivity ? "Yes" : "No"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">High-Stakes</p>
+                      <p className="mt-1.5 text-sm font-medium text-on-surface">
+                        {record.highStakesDecision ? "Yes" : "No"}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* AI Summary */}
+              {record.aiSummary && (
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Distribution</p>
-                  <p className="mt-1.5 text-sm font-medium text-on-surface">
-                    {DISTRIBUTION_LABELS[record.distributionContext]}
-                  </p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Summary</p>
+                  <div className="mt-1.5 rounded-lg border border-brand-200 dark:border-brand-800 bg-brand-50/50 dark:bg-brand-950/20 px-4 py-3">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Sparkle className="h-3.5 w-3.5 text-brand-500" weight="fill" />
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">
+                        Generated by AI
+                      </span>
+                    </div>
+                    <p className="text-sm text-on-surface-secondary leading-relaxed">
+                      {record.aiSummary}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Sensitive Data</p>
-                  <p className="mt-1.5 text-sm font-medium text-on-surface">
-                    {record.dataSensitivity ? "Yes" : "No"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">High-Stakes</p>
-                  <p className="mt-1.5 text-sm font-medium text-on-surface">
-                    {record.highStakesDecision ? "Yes" : "No"}
-                  </p>
-                </div>
-              </div>
+              )}
+
               {record.riskJustification && (
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Risk Assessment</p>
@@ -304,11 +421,44 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
         </div>
       </div>
 
+      {/* Approve Dialog */}
+      <Dialog open={approveDialogOpen} onClose={() => setApproveDialogOpen(false)}>
+        <DialogTitle>Authorize AI Reliance</DialogTitle>
+        <DialogDescription>
+          By authorizing this record, you confirm that you have reviewed the AI usage details,
+          risk classification, and human review plan. You are approving the use of AI-generated
+          output in your organization&apos;s workflow under the conditions described.
+        </DialogDescription>
+        <div className="mt-4">
+          <Textarea
+            id="approveComment"
+            label="Reviewer Note (optional)"
+            placeholder="Add a note for the record creator..."
+            rows={3}
+            value={approveComment}
+            onChange={(e) => setApproveComment(e.target.value)}
+          />
+        </div>
+        <div className="mt-4 flex justify-end gap-3">
+          <Button variant="secondary" onClick={() => setApproveDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            disabled={loading}
+            onClick={handleApprove}
+          >
+            <CheckCircle className="h-3.5 w-3.5" />
+            Authorize AI Reliance
+          </Button>
+        </div>
+      </Dialog>
+
       {/* Reject Dialog */}
       <Dialog open={rejectDialogOpen} onClose={() => setRejectDialogOpen(false)}>
-        <DialogTitle>Reject Record</DialogTitle>
+        <DialogTitle>Reject AI Reliance</DialogTitle>
         <DialogDescription>
-          Provide a reason for rejection. The creator will be able to see this comment.
+          Provide a reason for rejecting this AI usage request. The creator will be able to see
+          this comment and may revise and resubmit.
         </DialogDescription>
         <div className="mt-4">
           <Textarea
@@ -328,7 +478,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             disabled={!rejectComment.trim() || loading}
             onClick={handleReject}
           >
-            Reject Record
+            Reject AI Reliance
           </Button>
         </div>
       </Dialog>

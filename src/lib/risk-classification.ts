@@ -1,9 +1,8 @@
-import type { DistributionContext, RiskLevel } from "@/generated/prisma";
+import type { AiOutputImpact, RiskLevel } from "@/generated/prisma";
 
 interface RiskInput {
-  distributionContext: DistributionContext;
+  aiOutputImpact: AiOutputImpact;
   dataSensitivity: boolean;
-  highStakesDecision: boolean;
 }
 
 interface RiskResult {
@@ -11,31 +10,35 @@ interface RiskResult {
   justification: string;
 }
 
-export function classifyRisk(input: RiskInput): RiskResult {
-  const { distributionContext, dataSensitivity, highStakesDecision } = input;
+const HIGH_IMPACT: AiOutputImpact[] = [
+  "CLIENT_COMMUNICATION",
+  "EXTERNAL_REPORTS",
+  "FINANCIAL_LEGAL",
+  "REGULATORY_COMPLIANCE",
+];
 
-  // HIGH: External distribution OR high-stakes decision
-  if (distributionContext === "EXTERNAL" || highStakesDecision) {
-    const reasons: string[] = [];
-    if (distributionContext === "EXTERNAL") reasons.push("external distribution");
-    if (highStakesDecision) reasons.push("high-stakes decision");
+export function classifyRisk(input: RiskInput): RiskResult {
+  const { aiOutputImpact, dataSensitivity } = input;
+
+  // HIGH: External-facing or consequential impact categories
+  if (HIGH_IMPACT.includes(aiOutputImpact)) {
     return {
       riskLevel: "HIGH",
-      justification: `High risk: ${reasons.join(" and ")}. Mandatory reviewer approval required.`,
+      justification: `High risk: AI output impacts ${aiOutputImpact.toLowerCase().replace(/_/g, " ")}. Mandatory reviewer authorization required.`,
     };
   }
 
-  // MODERATE: Internal + sensitive data + no high-stakes
+  // MODERATE: Internal use with sensitive data
   if (dataSensitivity) {
     return {
       riskLevel: "MODERATE",
-      justification: "Moderate risk: internal use with sensitive data. Reviewer approval required.",
+      justification: "Moderate risk: internal use with sensitive data. Reviewer authorization required.",
     };
   }
 
-  // LOW: Internal + no sensitive data + no high-stakes
+  // LOW: Internal notes/research/documents, no sensitive data
   return {
     riskLevel: "LOW",
-    justification: "Low risk: internal use, no sensitive data, no high-stakes decision. Auto-authorized.",
+    justification: "Low risk: internal use, no sensitive data. Auto-authorized.",
   };
 }

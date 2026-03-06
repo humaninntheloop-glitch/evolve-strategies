@@ -8,7 +8,25 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/dal/audit-logs";
 import { createRecordSchema, updateRecordSchema } from "@/lib/validations/record-schemas";
 import { handleActionError } from "@/lib/errors";
+import type { AiOutputImpact } from "@/generated/prisma";
 import type { ActionResult } from "@/types";
+
+/** Derive legacy distributionContext from aiOutputImpact for backward compat */
+function deriveDistributionContext(impact: AiOutputImpact) {
+  const external: AiOutputImpact[] = [
+    "CLIENT_COMMUNICATION",
+    "EXTERNAL_REPORTS",
+    "FINANCIAL_LEGAL",
+    "REGULATORY_COMPLIANCE",
+  ];
+  return external.includes(impact) ? "EXTERNAL" : "INTERNAL";
+}
+
+/** Derive legacy highStakesDecision from aiOutputImpact */
+function deriveHighStakesDecision(impact: AiOutputImpact) {
+  const highStakes: AiOutputImpact[] = ["FINANCIAL_LEGAL", "REGULATORY_COMPLIANCE"];
+  return highStakes.includes(impact);
+}
 
 export async function createRecord(formData: FormData): Promise<ActionResult<{ id: string }>> {
   const user = await requireAuth();
@@ -16,9 +34,12 @@ export async function createRecord(formData: FormData): Promise<ActionResult<{ i
   const raw = {
     intendedUseDescription: formData.get("intendedUseDescription") as string,
     aiToolUsed: formData.get("aiToolUsed") as string,
-    distributionContext: formData.get("distributionContext") as string,
+    aiOutputImpact: formData.get("aiOutputImpact") as string,
     dataSensitivity: formData.get("dataSensitivity") as string,
-    highStakesDecision: formData.get("highStakesDecision") as string,
+    aiUsageType: formData.getAll("aiUsageType") as string[],
+    aiUsageTypeOther: (formData.get("aiUsageTypeOther") as string) || undefined,
+    humanReviewPlan: formData.getAll("humanReviewPlan") as string[],
+    humanReviewPlanOther: (formData.get("humanReviewPlanOther") as string) || undefined,
   };
 
   const parsed = createRecordSchema.safeParse(raw);
@@ -27,15 +48,23 @@ export async function createRecord(formData: FormData): Promise<ActionResult<{ i
   }
 
   try {
+    const impact = parsed.data.aiOutputImpact as AiOutputImpact;
+
     const record = await prisma.record.create({
       data: {
         organizationId: user.organizationId,
         creatorId: user.id,
         intendedUseDescription: parsed.data.intendedUseDescription,
         aiToolUsed: parsed.data.aiToolUsed,
-        distributionContext: parsed.data.distributionContext,
+        aiOutputImpact: impact,
         dataSensitivity: parsed.data.dataSensitivity,
-        highStakesDecision: parsed.data.highStakesDecision,
+        aiUsageType: parsed.data.aiUsageType,
+        aiUsageTypeOther: parsed.data.aiUsageTypeOther ?? null,
+        humanReviewPlan: parsed.data.humanReviewPlan,
+        humanReviewPlanOther: parsed.data.humanReviewPlanOther ?? null,
+        // Derive legacy fields for backward compat
+        distributionContext: deriveDistributionContext(impact),
+        highStakesDecision: deriveHighStakesDecision(impact),
         status: "DRAFT",
       },
     });
@@ -82,9 +111,12 @@ export async function updateRecord(
   const raw = {
     intendedUseDescription: formData.get("intendedUseDescription") as string,
     aiToolUsed: formData.get("aiToolUsed") as string,
-    distributionContext: formData.get("distributionContext") as string,
+    aiOutputImpact: formData.get("aiOutputImpact") as string,
     dataSensitivity: formData.get("dataSensitivity") as string,
-    highStakesDecision: formData.get("highStakesDecision") as string,
+    aiUsageType: formData.getAll("aiUsageType") as string[],
+    aiUsageTypeOther: (formData.get("aiUsageTypeOther") as string) || undefined,
+    humanReviewPlan: formData.getAll("humanReviewPlan") as string[],
+    humanReviewPlanOther: (formData.get("humanReviewPlanOther") as string) || undefined,
   };
 
   const parsed = updateRecordSchema.safeParse(raw);
@@ -93,9 +125,23 @@ export async function updateRecord(
   }
 
   try {
+    const impact = parsed.data.aiOutputImpact as AiOutputImpact | undefined;
+
+    const updateData: Record<string, unknown> = { ...parsed.data };
+
+    // Derive legacy fields if aiOutputImpact changed
+    if (impact) {
+      updateData.distributionContext = deriveDistributionContext(impact);
+      updateData.highStakesDecision = deriveHighStakesDecision(impact);
+    }
+
+    // Handle nullable fields
+    updateData.aiUsageTypeOther = parsed.data.aiUsageTypeOther ?? null;
+    updateData.humanReviewPlanOther = parsed.data.humanReviewPlanOther ?? null;
+
     await prisma.record.update({
       where: { id: recordId },
-      data: parsed.data,
+      data: updateData,
     });
 
     await createAuditLog({

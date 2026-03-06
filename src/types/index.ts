@@ -1,11 +1,12 @@
 import type {
   UserRole,
   DistributionContext,
+  AiOutputImpact,
   RiskLevel,
   RecordStatus,
 } from "@/generated/prisma";
 
-export type { UserRole, DistributionContext, RiskLevel, RecordStatus };
+export type { UserRole, DistributionContext, AiOutputImpact, RiskLevel, RecordStatus };
 
 export type ActionResult<T = void> =
   | { success: true; data: T }
@@ -30,9 +31,16 @@ export interface RecordWithRelations {
   reviewerId: string | null;
   intendedUseDescription: string;
   aiToolUsed: string;
-  distributionContext: DistributionContext;
+  distributionContext: DistributionContext | null;
   dataSensitivity: boolean;
-  highStakesDecision: boolean;
+  highStakesDecision: boolean | null;
+  aiJustification: string | null;
+  aiOutputImpact: AiOutputImpact | null;
+  aiUsageType: string[];
+  aiUsageTypeOther: string | null;
+  humanReviewPlan: string[];
+  humanReviewPlanOther: string | null;
+  aiSummary: string | null;
   riskLevel: RiskLevel | null;
   riskJustification: string | null;
   status: RecordStatus;
@@ -87,6 +95,52 @@ export const RISK_LABELS: Record<RiskLevel, string> = {
 export const DISTRIBUTION_LABELS: Record<DistributionContext, string> = {
   INTERNAL: "Internal",
   EXTERNAL: "External",
+};
+
+export const AI_OUTPUT_IMPACT_LABELS: Record<AiOutputImpact, string> = {
+  INTERNAL_NOTES: "Internal Notes / Brainstorming",
+  INTERNAL_RESEARCH: "Internal Research / Analysis",
+  INTERNAL_DOCUMENT: "Internal Document Drafting",
+  CLIENT_COMMUNICATION: "Customer / Client Communication",
+  EXTERNAL_REPORTS: "External Reports / Deliverables",
+  FINANCIAL_LEGAL: "Financial / Legal Decisions",
+  REGULATORY_COMPLIANCE: "Regulatory / Compliance / Contractual",
+};
+
+export const AI_USAGE_TYPE_OPTIONS = [
+  { value: "CONTENT_DRAFTING", label: "Content Drafting", description: "Drafting emails, reports, memos, or other written content" },
+  { value: "DATA_ANALYSIS", label: "Data Analysis", description: "Analyzing datasets, generating insights, or summarizing data" },
+  { value: "CODE_GENERATION", label: "Code Generation", description: "Writing, reviewing, or debugging code" },
+  { value: "RESEARCH", label: "Research & Summarization", description: "Researching topics, summarizing documents, or literature review" },
+  { value: "TRANSLATION", label: "Translation", description: "Translating text between languages" },
+  { value: "DECISION_SUPPORT", label: "Decision Support", description: "Providing recommendations or options to support a decision" },
+] as const;
+
+export const AI_USAGE_TYPE_LABELS: Record<string, string> = {
+  CONTENT_DRAFTING: "Content Drafting",
+  DATA_ANALYSIS: "Data Analysis",
+  CODE_GENERATION: "Code Generation",
+  RESEARCH: "Research & Summarization",
+  TRANSLATION: "Translation",
+  DECISION_SUPPORT: "Decision Support",
+  OTHER: "Other",
+};
+
+export const HUMAN_REVIEW_PLAN_OPTIONS = [
+  { value: "FULL_REVIEW", label: "Full Manual Review", description: "Every AI output will be reviewed in full before use" },
+  { value: "SPOT_CHECK", label: "Spot Check / Sampling", description: "A sample of AI outputs will be reviewed" },
+  { value: "EXPERT_REVIEW", label: "Subject Matter Expert Review", description: "A domain expert will validate accuracy and appropriateness" },
+  { value: "AUTOMATED_CHECK", label: "Automated Validation", description: "Automated checks (e.g., linting, fact-checking tools) will be applied" },
+  { value: "PEER_REVIEW", label: "Peer Review", description: "A colleague will independently review the AI output" },
+] as const;
+
+export const HUMAN_REVIEW_PLAN_LABELS: Record<string, string> = {
+  FULL_REVIEW: "Full Manual Review",
+  SPOT_CHECK: "Spot Check / Sampling",
+  EXPERT_REVIEW: "Subject Matter Expert Review",
+  AUTOMATED_CHECK: "Automated Validation",
+  PEER_REVIEW: "Peer Review",
+  OTHER: "Other",
 };
 
 export const ROLE_LABELS: Record<UserRole, string> = {

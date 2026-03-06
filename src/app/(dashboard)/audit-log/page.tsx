@@ -56,6 +56,9 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
                   Transition
                 </th>
                 <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">
+                  Comment
+                </th>
+                <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">
                   Record
                 </th>
               </tr>
@@ -81,6 +84,15 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
                       </span>
                     ) : (
                       log.newState ?? <span className="text-on-surface-quaternary">&mdash;</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3.5 max-w-[240px]">
+                    {(log.metadata as Record<string, unknown>)?.reviewComment ? (
+                      <p className="text-sm text-on-surface-tertiary line-clamp-2 italic">
+                        &ldquo;{String((log.metadata as Record<string, unknown>).reviewComment)}&rdquo;
+                      </p>
+                    ) : (
+                      <span className="text-xs text-on-surface-quaternary">&mdash;</span>
                     )}
                   </td>
                   <td className="px-4 py-3.5">

@@ -18,6 +18,16 @@ enum DistributionContext {
   EXTERNAL
 }
 
+enum AiOutputImpact {
+  INTERNAL_NOTES
+  INTERNAL_RESEARCH
+  INTERNAL_DOCUMENT
+  CLIENT_COMMUNICATION
+  EXTERNAL_REPORTS
+  FINANCIAL_LEGAL
+  REGULATORY_COMPLIANCE
+}
+
 enum RiskLevel {
   LOW
   MODERATE
@@ -69,25 +79,32 @@ model User {
 }
 
 model Record {
-  id                     String             @id @default(uuid()) @db.Uuid
-  organizationId         String             @map("organization_id") @db.Uuid
-  creatorId              String             @map("creator_id") @db.Uuid
-  reviewerId             String?            @map("reviewer_id") @db.Uuid
-  intendedUseDescription String             @map("intended_use_description")
-  aiToolUsed             String             @map("ai_tool_used")
-  distributionContext    DistributionContext @map("distribution_context")
+  id                     String              @id @default(uuid()) @db.Uuid
+  organizationId         String              @map("organization_id") @db.Uuid
+  creatorId              String              @map("creator_id") @db.Uuid
+  reviewerId             String?             @map("reviewer_id") @db.Uuid
+  intendedUseDescription String              @map("intended_use_description")
+  aiToolUsed             String              @map("ai_tool_used")
+  distributionContext    DistributionContext? @map("distribution_context")
   dataSensitivity        Boolean             @map("data_sensitivity")
-  highStakesDecision     Boolean             @map("high_stakes_decision")
-  riskLevel              RiskLevel?         @map("risk_level")
-  riskJustification      String?            @map("risk_justification")
-  status                 RecordStatus       @default(DRAFT)
-  reviewComment          String?            @map("review_comment")
-  submittedAt            DateTime?          @map("submitted_at")
-  approvedAt             DateTime?          @map("approved_at")
-  rejectedAt             DateTime?          @map("rejected_at")
-  recordedAt             DateTime?          @map("recorded_at")
-  createdAt              DateTime           @default(now()) @map("created_at")
-  updatedAt              DateTime           @updatedAt @map("updated_at")
+  highStakesDecision     Boolean?            @map("high_stakes_decision")
+  aiJustification        String?             @map("ai_justification")
+  aiOutputImpact         AiOutputImpact?     @map("ai_output_impact")
+  aiUsageType            String[]            @default([]) @map("ai_usage_type") @db.Text
+  aiUsageTypeOther       String?             @map("ai_usage_type_other")
+  humanReviewPlan        String[]            @default([]) @map("human_review_plan") @db.Text
+  humanReviewPlanOther   String?             @map("human_review_plan_other")
+  aiSummary              String?             @map("ai_summary")
+  riskLevel              RiskLevel?          @map("risk_level")
+  riskJustification      String?             @map("risk_justification")
+  status                 RecordStatus        @default(DRAFT)
+  reviewComment          String?             @map("review_comment")
+  submittedAt            DateTime?           @map("submitted_at")
+  approvedAt             DateTime?           @map("approved_at")
+  rejectedAt             DateTime?           @map("rejected_at")
+  recordedAt             DateTime?           @map("recorded_at")
+  createdAt              DateTime            @default(now()) @map("created_at")
+  updatedAt              DateTime            @updatedAt @map("updated_at")
 
   organization Organization @relation(fields: [organizationId], references: [id])
   creator      User         @relation("CreatedRecords", fields: [creatorId], references: [id])

@@ -5,7 +5,13 @@ import { join } from "node:path";
 import QRCode from "qrcode";
 import { requireAuth } from "@/lib/dal/auth";
 import { getRecordById } from "@/lib/dal/records";
-import { DISTRIBUTION_LABELS, RISK_LABELS } from "@/types";
+import {
+  AI_OUTPUT_IMPACT_LABELS,
+  AI_USAGE_TYPE_LABELS,
+  HUMAN_REVIEW_PLAN_LABELS,
+  DISTRIBUTION_LABELS,
+  RISK_LABELS,
+} from "@/types";
 import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +33,8 @@ const C = {
   bg: rgb(0.965, 0.97, 0.975),
   white: rgb(1, 1, 1),
   brand: rgb(0.31, 0.27, 0.9),
+  brandBg: rgb(0.95, 0.94, 0.99),
+  brandBorder: rgb(0.85, 0.82, 0.96),
   emerald: rgb(0.05, 0.55, 0.38),
   emeraldDark: rgb(0.02, 0.37, 0.27),
   emeraldBg: rgb(0.92, 0.98, 0.95),
@@ -53,7 +61,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
   return new NextResponse(Buffer.from(pdfBytes), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="HITL-Record-${record.id.slice(0, 8).toUpperCase()}.pdf"`,
+      "Content-Disposition": `attachment; filename="AI-Authorization-Slip-${record.id.slice(0, 8).toUpperCase()}.pdf"`,
     },
   });
 }
@@ -133,6 +141,9 @@ async function generateSlipPdf(
     return yy - 20;
   };
 
+  // Determine if record uses new or legacy fields
+  const hasNewFields = !!record.aiOutputImpact;
+
   // ═══════════════════════════════════════════════════════════
   //  TOP BAND — Logo + Org (left) | QR verification (right)
   // ═══════════════════════════════════════════════════════════
@@ -141,22 +152,18 @@ async function generateSlipPdf(
   const qrBoxW = 100;
   const qrSize = 52;
 
-  // QR verification box (right side)
   const qrBoxX = width - M - qrBoxW;
   const qrBoxY = y - topBandH;
   rect(qrBoxX, qrBoxY, qrBoxW, topBandH, { fill: C.bg, border: C.rule });
 
-  // Center QR inside box
   const qrX = qrBoxX + (qrBoxW - qrSize) / 2;
   const qrY = qrBoxY + topBandH - 8 - qrSize;
   page.drawImage(qrImg, { x: qrX, y: qrY, width: qrSize, height: qrSize });
 
-  // "Scan to verify" caption centered under QR
   const captionText = "Scan to verify";
   const captionW = regular.widthOfTextAtSize(captionText, 6);
   text(captionText, qrBoxX + (qrBoxW - captionW) / 2, qrBoxY + 5, { size: 6, color: C.light });
 
-  // Logo (left side)
   const logoSize = 36;
   page.drawImage(logoImg, {
     x: M,
@@ -165,12 +172,10 @@ async function generateSlipPdf(
     height: logoSize,
   });
 
-  // Org name + platform name
   const textLeftX = M + logoSize + 10;
   text(organizationName, textLeftX, y - 14, { font: bold, size: 14, color: C.black });
   text("Human In The Loop", textLeftX, y - 28, { size: 8.5, color: C.label });
 
-  // Record ID below org info
   const idStr = `#${record.id.slice(0, 8).toUpperCase()}`;
   text(idStr, textLeftX, y - 44, { font: regular, size: 9, color: C.light });
 
@@ -180,7 +185,7 @@ async function generateSlipPdf(
   //  DOCUMENT TITLE (centered)
   // ═══════════════════════════════════════════════════════════
 
-  textCentered("AI Usage Documentation Record", y, { font: bold, size: 18, color: C.black });
+  textCentered("AI Authorization Slip", y, { font: bold, size: 18, color: C.black });
   y -= 22;
   textCentered(`Recorded on ${formatDate(record.recordedAt)}`, y, { size: 9.5, color: C.medium });
   y -= 28;
@@ -227,56 +232,188 @@ async function generateSlipPdf(
   y -= 14;
 
   // ═══════════════════════════════════════════════════════════
-  //  STRUCTURED INPUTS — 4-column card
+  //  STRUCTURED INPUTS CARD
   // ═══════════════════════════════════════════════════════════
 
-  const cardPad = 14;
-  const cardInnerH = 36;
-  const cardH = cardInnerH + cardPad * 2;
-  const colW = W / 4;
+  if (hasNewFields) {
+    // New layout: 3-column card (AI Output Impact, Sensitive Data, Risk Level)
+    const cardPad = 14;
+    const cardInnerH = 36;
+    const cardH = cardInnerH + cardPad * 2;
+    const colW = W / 3;
 
-  rect(M, y - cardH, W, cardH, { fill: C.bg, border: C.rule });
+    rect(M, y - cardH, W, cardH, { fill: C.bg, border: C.rule });
 
-  const cardTop = y - cardPad;
+    const cardTop = y - cardPad;
 
-  // Column helper — labels & values centered within each column
-  const drawCol = (col: number, labelStr: string, valueStr: string, valueColor: Color = C.black) => {
-    const colX = M + colW * col;
-    const colCenter = colX + colW / 2;
+    const drawCol = (col: number, labelStr: string, valueStr: string, valueColor: Color = C.black) => {
+      const colX = M + colW * col;
+      const colCenter = colX + colW / 2;
 
-    const lw = bold.widthOfTextAtSize(labelStr.toUpperCase(), 7);
-    text(labelStr.toUpperCase(), colCenter - lw / 2, cardTop, { font: bold, size: 7, color: C.label });
+      const lw = bold.widthOfTextAtSize(labelStr.toUpperCase(), 7);
+      text(labelStr.toUpperCase(), colCenter - lw / 2, cardTop, { font: bold, size: 7, color: C.label });
 
-    const vw = bold.widthOfTextAtSize(valueStr, 11);
-    text(valueStr, colCenter - vw / 2, cardTop - 18, { font: bold, size: 11, color: valueColor });
-  };
+      const vw = bold.widthOfTextAtSize(valueStr, 11);
+      text(valueStr, colCenter - vw / 2, cardTop - 18, { font: bold, size: 11, color: valueColor });
+    };
 
-  drawCol(0, "Distribution", DISTRIBUTION_LABELS[record.distributionContext]);
-  drawCol(1, "Sensitive Data", record.dataSensitivity ? "Yes" : "No");
-  drawCol(2, "High-Stakes", record.highStakesDecision ? "Yes" : "No");
+    drawCol(0, "AI Output Impact", record.aiOutputImpact ? AI_OUTPUT_IMPACT_LABELS[record.aiOutputImpact] : "—");
+    drawCol(1, "Sensitive Data", record.dataSensitivity ? "Yes" : "No");
 
-  const riskText = record.riskLevel ? RISK_LABELS[record.riskLevel] : "—";
-  const riskColor = record.riskLevel === "LOW"
-    ? C.riskLow
-    : record.riskLevel === "MODERATE"
-      ? C.riskModerate
-      : record.riskLevel === "HIGH"
-        ? C.riskHigh
-        : C.medium;
-  drawCol(3, "Risk Level", riskText, riskColor);
+    const riskText = record.riskLevel ? RISK_LABELS[record.riskLevel] : "—";
+    const riskColor = record.riskLevel === "LOW"
+      ? C.riskLow
+      : record.riskLevel === "MODERATE"
+        ? C.riskModerate
+        : record.riskLevel === "HIGH"
+          ? C.riskHigh
+          : C.medium;
+    drawCol(2, "Risk Level", riskText, riskColor);
 
-  // Draw subtle column dividers
-  for (let i = 1; i < 4; i++) {
-    const dx = M + colW * i;
-    page.drawLine({
-      start: { x: dx, y: y - cardH + cardPad },
-      end: { x: dx, y: y - cardPad },
-      thickness: 0.5,
-      color: C.rule,
-    });
+    for (let i = 1; i < 3; i++) {
+      const dx = M + colW * i;
+      page.drawLine({
+        start: { x: dx, y: y - cardH + cardPad },
+        end: { x: dx, y: y - cardPad },
+        thickness: 0.5,
+        color: C.rule,
+      });
+    }
+
+    y -= cardH + 24;
+
+    // AI Usage Type
+    if (record.aiUsageType.length > 0) {
+      label("AI Usage Type", M, y);
+      y -= 16;
+      const usageText = record.aiUsageType
+        .map((t: string) => AI_USAGE_TYPE_LABELS[t] ?? t)
+        .join(", ");
+      const usageLines = wrap(usageText, regular, 9.5, W);
+      for (const line of usageLines) {
+        text(line, M, y, { size: 9.5, color: C.body });
+        y -= 13;
+      }
+      if (record.aiUsageTypeOther) {
+        text(`Other: ${record.aiUsageTypeOther}`, M, y, { size: 9, color: C.medium });
+        y -= 13;
+      }
+      y -= 10;
+    }
+
+    // Human Review Plan
+    if (record.humanReviewPlan.length > 0) {
+      label("Human Review Plan", M, y);
+      y -= 16;
+      const planText = record.humanReviewPlan
+        .map((p: string) => HUMAN_REVIEW_PLAN_LABELS[p] ?? p)
+        .join(", ");
+      const planLines = wrap(planText, regular, 9.5, W);
+      for (const line of planLines) {
+        text(line, M, y, { size: 9.5, color: C.body });
+        y -= 13;
+      }
+      if (record.humanReviewPlanOther) {
+        text(`Other: ${record.humanReviewPlanOther}`, M, y, { size: 9, color: C.medium });
+        y -= 13;
+      }
+      y -= 10;
+    }
+  } else {
+    // Legacy layout: 4-column card
+    const cardPad = 14;
+    const cardInnerH = 36;
+    const cardH = cardInnerH + cardPad * 2;
+    const colW = W / 4;
+
+    rect(M, y - cardH, W, cardH, { fill: C.bg, border: C.rule });
+
+    const cardTop = y - cardPad;
+
+    const drawCol = (col: number, labelStr: string, valueStr: string, valueColor: Color = C.black) => {
+      const colX = M + colW * col;
+      const colCenter = colX + colW / 2;
+
+      const lw = bold.widthOfTextAtSize(labelStr.toUpperCase(), 7);
+      text(labelStr.toUpperCase(), colCenter - lw / 2, cardTop, { font: bold, size: 7, color: C.label });
+
+      const vw = bold.widthOfTextAtSize(valueStr, 11);
+      text(valueStr, colCenter - vw / 2, cardTop - 18, { font: bold, size: 11, color: valueColor });
+    };
+
+    drawCol(0, "Distribution", record.distributionContext ? DISTRIBUTION_LABELS[record.distributionContext] : "—");
+    drawCol(1, "Sensitive Data", record.dataSensitivity ? "Yes" : "No");
+    drawCol(2, "High-Stakes", record.highStakesDecision ? "Yes" : "No");
+
+    const riskText = record.riskLevel ? RISK_LABELS[record.riskLevel] : "—";
+    const riskColor = record.riskLevel === "LOW"
+      ? C.riskLow
+      : record.riskLevel === "MODERATE"
+        ? C.riskModerate
+        : record.riskLevel === "HIGH"
+          ? C.riskHigh
+          : C.medium;
+    drawCol(3, "Risk Level", riskText, riskColor);
+
+    for (let i = 1; i < 4; i++) {
+      const dx = M + colW * i;
+      page.drawLine({
+        start: { x: dx, y: y - cardH + cardPad },
+        end: { x: dx, y: y - cardPad },
+        thickness: 0.5,
+        color: C.rule,
+      });
+    }
+
+    y -= cardH + 24;
   }
 
-  y -= cardH + 24;
+  // ═══════════════════════════════════════════════════════════
+  //  AI JUSTIFICATION (legacy, if present)
+  // ═══════════════════════════════════════════════════════════
+
+  if (record.aiJustification && !hasNewFields) {
+    label("AI Justification", M, y);
+    y -= 16;
+
+    const justifLines = wrap(record.aiJustification, regular, 9.5, W - 24);
+    const justifBlockH = justifLines.length * 14 + 20;
+
+    rect(M, y - justifBlockH + 4, W, justifBlockH, { fill: C.bg, border: C.rule });
+
+    let justifLineY = y - 6;
+    for (const line of justifLines) {
+      text(line, M + 12, justifLineY, { size: 9.5, color: C.medium });
+      justifLineY -= 14;
+    }
+
+    y -= justifBlockH + 20;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  AI SUMMARY (if present)
+  // ═══════════════════════════════════════════════════════════
+
+  if (record.aiSummary) {
+    label("AI Summary", M, y);
+    y -= 16;
+
+    const summaryLines = wrap(record.aiSummary, regular, 9.5, W - 24);
+    const summaryBlockH = summaryLines.length * 14 + 28;
+
+    rect(M, y - summaryBlockH + 4, W, summaryBlockH, { fill: C.brandBg, border: C.brandBorder });
+
+    // "Generated by AI" indicator
+    text("GENERATED BY AI", M + 12, y - 6, { font: bold, size: 6.5, color: C.brand });
+
+    let summaryLineY = y - 20;
+    for (const line of summaryLines) {
+      text(line, M + 12, summaryLineY, { size: 9.5, color: C.medium });
+      summaryLineY -= 14;
+    }
+
+    y -= summaryBlockH + 20;
+  }
 
   // ═══════════════════════════════════════════════════════════
   //  RISK ASSESSMENT (if present)
@@ -353,7 +490,7 @@ async function generateSlipPdf(
   };
 
   drawFootCol(0, "Created By", record.creator.fullName);
-  drawFootCol(1, "Reviewed By", record.reviewer?.fullName ?? "Auto-approved");
+  drawFootCol(1, "Reviewed By", record.reviewer?.fullName ?? "Auto-authorized");
   drawFootCol(2, "Recorded", formatDate(record.recordedAt));
 
   y -= 48;

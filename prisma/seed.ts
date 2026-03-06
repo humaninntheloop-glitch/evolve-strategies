@@ -1,25 +1,77 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma";
+import { createClient } from "@supabase/supabase-js";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
+
 async function main() {
   console.log("Seeding database...");
 
-  // Create a demo organization
+  // Create organization
   const org = await prisma.organization.upsert({
-    where: { slug: "acme-corp" },
+    where: { slug: "vizio-ai" },
     update: {},
     create: {
-      name: "Acme Corp",
-      slug: "acme-corp",
-      isDemo: true,
+      name: "Vizio AI",
+      slug: "vizio-ai",
+      isDemo: false,
     },
   });
 
   console.log("Created organization:", org.name);
+
+  // Create super admin auth user in Supabase
+  const email = "emre.bayrak@vizio.ai";
+  const password = "emre.bayrak@vizio.ai";
+
+  const { data: existingUsers } = await supabase.auth.admin.listUsers();
+  const existingUser = existingUsers?.users?.find((u) => u.email === email);
+
+  let userId: string;
+
+  if (existingUser) {
+    userId = existingUser.id;
+    console.log("Auth user already exists:", email);
+  } else {
+    const { data: authData, error: authError } =
+      await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: "Emre Bayrak" },
+      });
+
+    if (authError || !authData.user) {
+      throw new Error(`Failed to create auth user: ${authError?.message}`);
+    }
+
+    userId = authData.user.id;
+    console.log("Created auth user:", email);
+  }
+
+  // Create super admin in DB
+  await prisma.user.upsert({
+    where: { email },
+    update: { role: "ADMIN", isSuperAdmin: true, organizationId: org.id },
+    create: {
+      id: userId,
+      email,
+      fullName: "Emre Bayrak",
+      role: "ADMIN",
+      isSuperAdmin: true,
+      organizationId: org.id,
+    },
+  });
+
+  console.log("Created super admin user:", email);
 
   // Create default risk categories
   const categories = [

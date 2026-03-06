@@ -6,17 +6,24 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { CheckboxGroup } from "@/components/ui/checkbox-group";
 import { Card } from "@/components/ui/card";
 import { createRecord, updateRecord } from "@/lib/actions/record-actions";
+import { AI_USAGE_TYPE_OPTIONS, HUMAN_REVIEW_PLAN_OPTIONS } from "@/types";
 import type { RecordWithRelations } from "@/types";
 
 interface RecordFormProps {
   record?: RecordWithRelations;
 }
 
-const distributionOptions = [
-  { value: "INTERNAL", label: "Internal use only" },
-  { value: "EXTERNAL", label: "External distribution" },
+const aiOutputImpactOptions = [
+  { value: "INTERNAL_NOTES", label: "Internal notes or brainstorming" },
+  { value: "INTERNAL_RESEARCH", label: "Internal research or analysis" },
+  { value: "INTERNAL_DOCUMENT", label: "Internal document drafting" },
+  { value: "CLIENT_COMMUNICATION", label: "Customer or client communication" },
+  { value: "EXTERNAL_REPORTS", label: "External reports or deliverables" },
+  { value: "FINANCIAL_LEGAL", label: "Financial or legal decisions" },
+  { value: "REGULATORY_COMPLIANCE", label: "Regulatory, compliance, or contractual materials" },
 ];
 
 const booleanOptions = [
@@ -88,14 +95,14 @@ export function RecordForm({ record }: RecordFormProps) {
         />
 
         <Select
-          id="distributionContext"
-          name="distributionContext"
-          label="Is this AI output intended for internal use only or external distribution?"
-          description="External exposure materially increases legal, regulatory, and reputational risk."
-          options={distributionOptions}
-          placeholder="Select distribution context"
+          id="aiOutputImpact"
+          name="aiOutputImpact"
+          label="What will this AI output influence?"
+          description="This determines the risk level. External-facing or consequential outputs require reviewer authorization."
+          options={aiOutputImpactOptions}
+          placeholder="Select AI output impact"
           required
-          defaultValue={record?.distributionContext}
+          defaultValue={record?.aiOutputImpact ?? undefined}
         />
 
         <Select
@@ -109,15 +116,26 @@ export function RecordForm({ record }: RecordFormProps) {
           defaultValue={record ? String(record.dataSensitivity) : undefined}
         />
 
-        <Select
-          id="highStakesDecision"
-          name="highStakesDecision"
-          label="Will this AI output influence a high-stakes decision?"
-          description="High-stakes decisions include financial reporting, regulatory filings, legal determinations, clinical decisions, or binding contractual terms. When AI influences consequential decisions, authorization and accountability are required."
-          options={booleanOptions}
-          placeholder="Select an option"
-          required
-          defaultValue={record ? String(record.highStakesDecision) : undefined}
+        <CheckboxGroup
+          name="aiUsageType"
+          label="How is AI being used?"
+          description="Select all that apply. This helps categorize and track AI usage patterns across the organization."
+          options={[...AI_USAGE_TYPE_OPTIONS]}
+          defaultValues={record?.aiUsageType ?? []}
+          showOther
+          otherName="aiUsageTypeOther"
+          otherDefaultValue={record?.aiUsageTypeOther ?? undefined}
+        />
+
+        <CheckboxGroup
+          name="humanReviewPlan"
+          label="How will you review AI output before use?"
+          description="Select all review methods you plan to apply. At least one human review step is required."
+          options={[...HUMAN_REVIEW_PLAN_OPTIONS]}
+          defaultValues={record?.humanReviewPlan ?? []}
+          showOther
+          otherName="humanReviewPlanOther"
+          otherDefaultValue={record?.humanReviewPlanOther ?? undefined}
         />
 
         <div className="flex items-center gap-3 border-t border-border-subtle pt-6">

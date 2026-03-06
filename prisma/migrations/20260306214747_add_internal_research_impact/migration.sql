@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "AiOutputImpact" ADD VALUE 'INTERNAL_RESEARCH';

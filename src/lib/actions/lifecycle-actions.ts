@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/dal/audit-logs";
 import { validateTransition } from "@/lib/lifecycle/state-machine";
 import { classifyRisk } from "@/lib/risk-classification";
+import { generateAiSummary } from "@/lib/ai/summarize";
 import { handleActionError } from "@/lib/errors";
 import type { ActionResult, RecordStatus } from "@/types";
 
@@ -46,6 +47,9 @@ async function performTransition(
     if (targetStatus === "APPROVED") {
       updateData.approvedAt = new Date();
       updateData.reviewerId = user.id;
+      if (options?.reviewComment) {
+        updateData.reviewComment = options.reviewComment;
+      }
     }
     if (targetStatus === "REJECTED") {
       updateData.rejectedAt = new Date();
@@ -54,11 +58,12 @@ async function performTransition(
     }
     if (targetStatus === "RECORDED") updateData.recordedAt = new Date();
     if (targetStatus === "DRAFT") {
-      // Return to draft clears review fields
+      // Return to draft clears review fields + AI summary
       updateData.reviewComment = null;
       updateData.rejectedAt = null;
       updateData.riskLevel = null;
       updateData.riskJustification = null;
+      updateData.aiSummary = null;
     }
 
     await prisma.record.update({
@@ -114,14 +119,31 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
   }
 
   try {
-    // Deterministic risk classification
-    const riskResult = classifyRisk({
-      distributionContext: record.distributionContext,
+    // Deterministic risk classification using new inputs
+    const riskResult = record.aiOutputImpact
+      ? classifyRisk({
+          aiOutputImpact: record.aiOutputImpact,
+          dataSensitivity: record.dataSensitivity,
+        })
+      : {
+          // Fallback for legacy records without aiOutputImpact
+          riskLevel: "MODERATE" as const,
+          justification: "Risk could not be determined — missing AI output impact. Manual review required.",
+        };
+
+    // Generate AI summary (non-blocking — uses fallback on failure)
+    const aiSummary = await generateAiSummary({
+      aiToolUsed: record.aiToolUsed,
+      intendedUseDescription: record.intendedUseDescription,
+      aiOutputImpact: record.aiOutputImpact ?? "UNKNOWN",
+      aiUsageType: record.aiUsageType,
+      humanReviewPlan: record.humanReviewPlan,
       dataSensitivity: record.dataSensitivity,
-      highStakesDecision: record.highStakesDecision,
+      riskLevel: riskResult.riskLevel,
+      riskJustification: riskResult.justification,
     });
 
-    // Update record with risk classification and submit
+    // Update record with risk classification + AI summary and submit
     await prisma.record.update({
       where: { id: recordId },
       data: {
@@ -129,6 +151,7 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
         submittedAt: new Date(),
         riskLevel: riskResult.riskLevel,
         riskJustification: riskResult.justification,
+        aiSummary,
       },
     });
 
@@ -162,7 +185,7 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
         actorId: user.id,
         previousState: "SUBMITTED",
         newState: "APPROVED",
-        metadata: { autoApproved: true, reason: "Low risk - auto-approved" },
+        metadata: { autoApproved: true, reason: "Low risk - auto-authorized" },
       });
 
       await prisma.record.update({
@@ -195,8 +218,13 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
   return { success: true, data: undefined };
 }
 
-export async function approveRecord(recordId: string): Promise<ActionResult> {
-  return performTransition(recordId, "APPROVED");
+export async function approveRecord(
+  recordId: string,
+  comment?: string
+): Promise<ActionResult> {
+  return performTransition(recordId, "APPROVED", {
+    reviewComment: comment,
+  });
 }
 
 export async function rejectRecord(
