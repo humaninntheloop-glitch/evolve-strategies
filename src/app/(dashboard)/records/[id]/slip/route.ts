@@ -183,7 +183,7 @@ async function generateSlipPdf(
   });
 
   const textLeftX = M + logoSize + 10;
-  text(organizationName, textLeftX, y - 14, { font: bold, size: 14, color: C.black });
+  text(organizationName, textLeftX, y - 14, { font: bold, size: 12, color: C.black });
   text("Human In The Loop", textLeftX, y - 28, { size: 8.5, color: C.label });
 
   const idStr = `#${record.id.slice(0, 8).toUpperCase()}`;
@@ -195,7 +195,7 @@ async function generateSlipPdf(
   //  DOCUMENT TITLE (centered)
   // ═══════════════════════════════════════════════════════════
 
-  textCentered("AI Authorization Slip", y, { font: bold, size: 18, color: C.black });
+  textCentered("AI Authorization Slip", y, { font: bold, size: 15, color: C.black });
   y -= 22;
   textCentered(`Recorded on ${formatDate(record.recordedAt)}`, y, { size: 9.5, color: C.medium });
   y -= 28;
@@ -225,7 +225,7 @@ async function generateSlipPdf(
 
   label("AI Tool Used", M, y);
   y -= 16;
-  text(record.aiToolUsed, M, y, { font: bold, size: 12, color: C.black });
+  text(record.aiToolUsed, M, y, { font: bold, size: 11, color: C.black });
   y -= 26;
 
   // ═══════════════════════════════════════════════════════════
@@ -255,8 +255,8 @@ async function generateSlipPdf(
       text(valueStr, colCenter - vw / 2, cardTop - 18, { font: bold, size: valueSz, color: valueColor });
     };
 
-    drawColAt(M, col0W, "AI Output Impact", record.aiOutputImpact ? AI_OUTPUT_IMPACT_LABELS[record.aiOutputImpact] : "—", 11);
-    drawColAt(M + col0W, col1W, "Sensitive Data", record.dataSensitivity ? "Yes" : "No", 10);
+    drawColAt(M, col0W, "AI Output Impact", record.aiOutputImpact ? AI_OUTPUT_IMPACT_LABELS[record.aiOutputImpact] : "—", 10);
+    drawColAt(M + col0W, col1W, "Sensitive Data", record.dataSensitivity ? "Yes" : "No", 9);
 
     const riskText = record.riskLevel ? RISK_LABELS[record.riskLevel] : "—";
     const riskColor = record.riskLevel === "LOW"
@@ -266,7 +266,7 @@ async function generateSlipPdf(
         : record.riskLevel === "HIGH"
           ? C.riskHigh
           : C.medium;
-    drawColAt(M + col0W + col1W, col2W, "Risk Level", riskText, 10, riskColor);
+    drawColAt(M + col0W + col1W, col2W, "Risk Level", riskText, 9, riskColor);
 
     // Column dividers
     const dividers = [M + col0W, M + col0W + col1W];
@@ -357,8 +357,8 @@ async function generateSlipPdf(
       const lw = bold.widthOfTextAtSize(labelStr.toUpperCase(), 7);
       text(labelStr.toUpperCase(), colCenter - lw / 2, cardTop, { font: bold, size: 7, color: C.label });
 
-      const vw = bold.widthOfTextAtSize(valueStr, 11);
-      text(valueStr, colCenter - vw / 2, cardTop - 18, { font: bold, size: 11, color: valueColor });
+      const vw = bold.widthOfTextAtSize(valueStr, 10);
+      text(valueStr, colCenter - vw / 2, cardTop - 18, { font: bold, size: 10, color: valueColor });
     };
 
     drawCol(0, "Distribution", record.distributionContext ? DISTRIBUTION_LABELS[record.distributionContext] : "—");
@@ -507,8 +507,8 @@ async function generateSlipPdf(
     label("Authorized By", M, y);
     label("Authorization Date", M + halfW, y);
     y -= 14;
-    text(isAutoApproved ? "Auto-authorized (Low Risk)" : record.reviewer!.fullName, M, y, { font: bold, size: 10, color: C.black });
-    text(formatDate(record.approvedAt), M + halfW, y, { font: bold, size: 10, color: C.black });
+    text(isAutoApproved ? "Auto-authorized (Low Risk)" : record.reviewer!.fullName, M, y, { font: bold, size: 9, color: C.black });
+    text(formatDate(record.approvedAt), M + halfW, y, { font: bold, size: 9, color: C.black });
     y -= 20;
 
     // Decision Rationale
@@ -572,8 +572,8 @@ async function generateSlipPdf(
     const lw = bold.widthOfTextAtSize(labelStr.toUpperCase(), 7);
     text(labelStr.toUpperCase(), colCenter - lw / 2, y, { font: bold, size: 7, color: C.label });
 
-    const vw = bold.widthOfTextAtSize(valueStr, 10);
-    text(valueStr, colCenter - vw / 2, y - 16, { font: bold, size: 10, color: C.black });
+    const vw = bold.widthOfTextAtSize(valueStr, 9);
+    text(valueStr, colCenter - vw / 2, y - 16, { font: bold, size: 9, color: C.black });
   };
 
   drawFootCol(0, "Created By", record.creator.fullName);
