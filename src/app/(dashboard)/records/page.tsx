@@ -54,17 +54,17 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
     <div className="animate-fade-in-up">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-on-surface">Records</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-on-surface">Permission Slips</h1>
           <p className="mt-1 text-sm text-on-surface-secondary">
             {user.role === "EMPLOYEE"
-              ? "Your AI usage records"
-              : "All organization records"}
+              ? "Your AI usage permission slips"
+              : "All organization permission slips"}
           </p>
         </div>
         <Link href="/records/new">
           <Button>
             <Plus className="h-4 w-4" />
-            New Record
+            New Permission Slip
           </Button>
         </Link>
       </div>
@@ -82,17 +82,17 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-inset">
             <FileText className="h-7 w-7 text-on-surface-quaternary" />
           </div>
-          <p className="mt-4 text-sm font-medium text-on-surface-secondary">No records found</p>
+          <p className="mt-4 text-sm font-medium text-on-surface-secondary">No permission slips found</p>
           <p className="mt-1 text-sm text-on-surface-quaternary">
             {statusParam || creatorParam || fromParam || toParam
               ? "Try adjusting your filters."
-              : "Create your first AI usage record to get started."}
+              : "Create your first AI permission slip to get started."}
           </p>
           {!statusParam && !creatorParam && !fromParam && !toParam && (
             <Link href="/records/new" className="mt-5">
               <Button size="sm">
                 <Plus className="h-4 w-4" />
-                Create Record
+                Create Permission Slip
               </Button>
             </Link>
           )}

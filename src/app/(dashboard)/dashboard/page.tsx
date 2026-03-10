@@ -36,7 +36,7 @@ export default async function DashboardPage() {
   ]);
 
   const statCards = [
-    { label: "Total Records", value: stats.totalRecords, icon: FileText, color: "text-zinc-400 dark:text-zinc-500" },
+    { label: "Total Slips", value: stats.totalRecords, icon: FileText, color: "text-zinc-400 dark:text-zinc-500" },
     { label: "Pending Review", value: stats.pendingReview, icon: WarningCircle, color: "text-amber-500 dark:text-amber-400" },
     { label: "Approved", value: stats.approvedRecords, icon: CheckCircle, color: "text-blue-500 dark:text-blue-400" },
     { label: "Recorded", value: stats.recordedRecords, icon: Lock, color: "text-emerald-500 dark:text-emerald-400" },
@@ -75,7 +75,7 @@ export default async function DashboardPage() {
           <Link href="/records/new">
             <Button size="sm">
               <Plus className="h-4 w-4" />
-              New Record
+              New Permission Slip
             </Button>
           </Link>
         </div>
@@ -103,7 +103,7 @@ export default async function DashboardPage() {
         {/* Recent Activity */}
         <div className="lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-on-surface">Recent Records</h2>
+            <h2 className="text-sm font-semibold text-on-surface">Recent Permission Slips</h2>
             <Link
               href="/records"
               className="inline-flex items-center gap-1 text-[13px] font-medium text-on-surface-tertiary transition-colors hover:text-on-surface"
@@ -117,14 +117,14 @@ export default async function DashboardPage() {
             <Card>
               <div className="flex flex-col items-center py-8 text-center">
                 <FileText className="h-6 w-6 text-on-surface-quaternary" />
-                <p className="mt-3 text-sm font-medium text-on-surface-secondary">No records yet</p>
+                <p className="mt-3 text-sm font-medium text-on-surface-secondary">No permission slips yet</p>
                 <p className="mt-1 text-xs text-on-surface-quaternary">
-                  Create your first AI usage record to get started.
+                  Create your first AI permission slip to get started.
                 </p>
                 <Link href="/records/new" className="mt-4">
                   <Button size="sm">
                     <Plus className="h-4 w-4" />
-                    Create Record
+                    Create Permission Slip
                   </Button>
                 </Link>
               </div>
@@ -201,7 +201,7 @@ export default async function DashboardPage() {
                 <Card className="flex items-center gap-3 py-3 px-4 transition-all duration-150 hover:shadow-md hover:border-border-strong">
                   <Plus className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-on-surface">New Record</p>
+                    <p className="text-sm font-medium text-on-surface">New Permission Slip</p>
                     <p className="text-xs text-on-surface-quaternary">Document AI usage</p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-on-surface-quaternary transition-transform group-hover:translate-x-0.5" />

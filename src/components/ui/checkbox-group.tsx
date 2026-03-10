@@ -10,7 +10,7 @@ export interface CheckboxGroupOption {
 }
 
 export interface CheckboxGroupProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "defaultValue"> {
+  extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "defaultValue" | "onChange"> {
   label?: string;
   description?: string;
   error?: string;
@@ -18,10 +18,18 @@ export interface CheckboxGroupProps
   /** Name used for all checkboxes — use formData.getAll(name) */
   name: string;
   defaultValues?: string[];
+  /** Controlled mode: current selected values */
+  values?: string[];
+  /** Controlled mode: called when selection changes */
+  onChange?: (values: string[]) => void;
   /** If true, show "Other" option with a textarea */
   showOther?: boolean;
   otherName?: string;
   otherDefaultValue?: string;
+  /** Controlled mode: other textarea value */
+  otherValue?: string;
+  /** Controlled mode: other textarea change handler */
+  onOtherChange?: (value: string) => void;
 }
 
 const CheckboxGroup = forwardRef<HTMLInputElement, CheckboxGroupProps>(
@@ -35,13 +43,32 @@ const CheckboxGroup = forwardRef<HTMLInputElement, CheckboxGroupProps>(
       options,
       name,
       defaultValues = [],
+      values,
+      onChange,
       showOther = false,
       otherName,
       otherDefaultValue,
+      otherValue,
+      onOtherChange,
       ...props
     },
     ref
   ) => {
+    const isControlled = onChange !== undefined;
+
+    function isChecked(val: string) {
+      if (isControlled && values) return values.includes(val);
+      return undefined; // let defaultChecked handle it
+    }
+
+    function handleToggle(val: string) {
+      if (!isControlled || !values) return;
+      const next = values.includes(val)
+        ? values.filter((v) => v !== val)
+        : [...values, val];
+      onChange!(next);
+    }
+
     return (
       <div>
         {label && (
@@ -70,7 +97,10 @@ const CheckboxGroup = forwardRef<HTMLInputElement, CheckboxGroupProps>(
                 type="checkbox"
                 name={name}
                 value={opt.value}
-                defaultChecked={defaultValues.includes(opt.value)}
+                {...(isControlled
+                  ? { checked: isChecked(opt.value), onChange: () => handleToggle(opt.value) }
+                  : { defaultChecked: defaultValues.includes(opt.value) }
+                )}
                 className="mt-0.5 h-4 w-4 rounded border-input-border text-brand-600 accent-brand-600 focus:ring-2 focus:ring-brand-500/20"
                 {...props}
               />
@@ -93,21 +123,36 @@ const CheckboxGroup = forwardRef<HTMLInputElement, CheckboxGroupProps>(
                 type="checkbox"
                 name={name}
                 value="OTHER"
-                defaultChecked={defaultValues.includes("OTHER")}
+                {...(isControlled
+                  ? { checked: isChecked("OTHER"), onChange: () => handleToggle("OTHER") }
+                  : { defaultChecked: defaultValues.includes("OTHER") }
+                )}
                 className="mt-0.5 h-4 w-4 rounded border-input-border text-brand-600 accent-brand-600 focus:ring-2 focus:ring-brand-500/20"
               />
               <div className="min-w-0 flex-1">
                 <span className="text-sm font-medium text-on-surface">
                   Other
                 </span>
-                {otherName && (
-                  <textarea
-                    name={otherName}
-                    defaultValue={otherDefaultValue}
-                    placeholder="Please specify..."
-                    rows={2}
-                    className="mt-2 block w-full rounded-md border border-input-border bg-surface px-3 py-2 text-sm text-on-surface shadow-xs transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-zinc-400/20 focus:border-input-border-focus placeholder:text-on-surface-quaternary"
-                  />
+                {isControlled ? (
+                  values?.includes("OTHER") && (
+                    <textarea
+                      placeholder="Please specify..."
+                      rows={2}
+                      value={otherValue ?? ""}
+                      onChange={(e) => onOtherChange?.(e.target.value)}
+                      className="mt-2 block w-full rounded-md border border-input-border bg-surface px-3 py-2 text-sm text-on-surface shadow-xs transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-zinc-400/20 focus:border-input-border-focus placeholder:text-on-surface-quaternary"
+                    />
+                  )
+                ) : (
+                  otherName && (
+                    <textarea
+                      name={otherName}
+                      defaultValue={otherDefaultValue}
+                      placeholder="Please specify..."
+                      rows={2}
+                      className="mt-2 block w-full rounded-md border border-input-border bg-surface px-3 py-2 text-sm text-on-surface shadow-xs transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-zinc-400/20 focus:border-input-border-focus placeholder:text-on-surface-quaternary"
+                    />
+                  )
                 )}
               </div>
             </label>

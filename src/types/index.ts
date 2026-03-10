@@ -40,6 +40,12 @@ export interface RecordWithRelations {
   aiUsageTypeOther: string | null;
   humanReviewPlan: string[];
   humanReviewPlanOther: string | null;
+  aiUseJustification: string[];
+  aiUseJustificationOther: string | null;
+  reviewerDecisionRationale: string | null;
+  reviewerDecisionRationaleOther: string | null;
+  reviewerValidationReference: string[];
+  reviewerValidationReferenceOther: string | null;
   aiSummary: string | null;
   riskLevel: RiskLevel | null;
   riskJustification: string | null;
@@ -149,6 +155,59 @@ export const HUMAN_REVIEW_PLAN_LABELS: Record<string, string> = {
   EXPERT_REVIEW: "Subject Matter Expert Review",
   AUTOMATED_CHECK: "Automated Validation",
   PEER_REVIEW: "Peer Review",
+  OTHER: "Other",
+};
+
+export const AI_USE_JUSTIFICATION_OPTIONS = [
+  { value: "EFFICIENCY_DRAFTING", label: "Efficiency or drafting assistance" },
+  { value: "SUMMARIZATION", label: "Summarization of large materials" },
+  { value: "RESEARCH_SUPPORT", label: "Internal research support" },
+  { value: "DATA_ORGANIZATION", label: "Data organization or classification" },
+  { value: "DECISION_SUPPORT_VERIFIED", label: "Decision support with human verification" },
+] as const;
+
+export const AI_USE_JUSTIFICATION_LABELS: Record<string, string> = {
+  EFFICIENCY_DRAFTING: "Efficiency / Drafting Assistance",
+  SUMMARIZATION: "Summarization of Large Materials",
+  RESEARCH_SUPPORT: "Internal Research Support",
+  DATA_ORGANIZATION: "Data Organization / Classification",
+  DECISION_SUPPORT_VERIFIED: "Decision Support with Human Verification",
+  OTHER: "Other",
+};
+
+export const REVIEWER_DECISION_RATIONALE_OPTIONS = [
+  { value: "AI_USE_APPROPRIATE", label: "AI use is appropriate for this task" },
+  { value: "REVIEW_PLAN_MITIGATES", label: "Human review plan sufficiently mitigates risk" },
+  { value: "RISK_ACCEPTABLE", label: "Risk level acceptable for this workflow" },
+  { value: "ADDITIONAL_SAFEGUARDS", label: "Additional safeguards applied" },
+  { value: "AI_NOT_APPROPRIATE", label: "AI reliance not appropriate for this task" },
+] as const;
+
+export const REVIEWER_DECISION_RATIONALE_LABELS: Record<string, string> = {
+  AI_USE_APPROPRIATE: "AI Use Appropriate for Task",
+  REVIEW_PLAN_MITIGATES: "Human Review Plan Mitigates Risk",
+  RISK_ACCEPTABLE: "Risk Level Acceptable",
+  ADDITIONAL_SAFEGUARDS: "Additional Safeguards Applied",
+  AI_NOT_APPROPRIATE: "AI Reliance Not Appropriate",
+  OTHER: "Other",
+};
+
+export const REVIEWER_VALIDATION_REFERENCE_OPTIONS = [
+  { value: "INTERNAL_DOCS", label: "Internal documentation or knowledge base" },
+  { value: "SOURCE_MATERIALS", label: "Source materials provided by the requestor" },
+  { value: "COMPANY_POLICIES", label: "Company policies or procedures" },
+  { value: "LEGAL_REGULATORY", label: "Legal or regulatory guidance" },
+  { value: "HUMAN_VERIFICATION", label: "Independent human verification" },
+  { value: "MULTIPLE_SOURCES", label: "Multiple sources of validation" },
+] as const;
+
+export const REVIEWER_VALIDATION_REFERENCE_LABELS: Record<string, string> = {
+  INTERNAL_DOCS: "Internal Documentation / Knowledge Base",
+  SOURCE_MATERIALS: "Source Materials from Requestor",
+  COMPANY_POLICIES: "Company Policies / Procedures",
+  LEGAL_REGULATORY: "Legal / Regulatory Guidance",
+  HUMAN_VERIFICATION: "Independent Human Verification",
+  MULTIPLE_SOURCES: "Multiple Sources of Validation",
   OTHER: "Other",
 };
 

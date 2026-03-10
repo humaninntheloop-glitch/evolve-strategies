@@ -5,6 +5,7 @@ interface SummaryInput {
   aiOutputImpact: string;
   aiUsageType: string[];
   humanReviewPlan: string[];
+  aiUseJustification: string[];
   dataSensitivity: boolean;
   riskLevel: string;
   riskJustification: string;
@@ -29,6 +30,7 @@ Record details:
 - AI Output Impact: ${input.aiOutputImpact}
 - AI Usage Types: ${input.aiUsageType.join(", ")}
 - Human Review Plan: ${input.humanReviewPlan.join(", ")}
+- AI Use Justification: ${input.aiUseJustification.join(", ") || "Not specified"}
 - Involves Sensitive Data: ${input.dataSensitivity ? "Yes" : "No"}
 - Risk Level: ${input.riskLevel}
 - Risk Justification: ${input.riskJustification}

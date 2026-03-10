@@ -8,7 +8,7 @@ import { Select } from "@/components/ui/select";
 import { CheckboxGroup } from "@/components/ui/checkbox-group";
 import { Card } from "@/components/ui/card";
 import { createRecord, updateRecord } from "@/lib/actions/record-actions";
-import { AI_USAGE_TYPE_OPTIONS, HUMAN_REVIEW_PLAN_OPTIONS } from "@/types";
+import { AI_USAGE_TYPE_OPTIONS, HUMAN_REVIEW_PLAN_OPTIONS, AI_USE_JUSTIFICATION_OPTIONS } from "@/types";
 import type { RecordWithRelations } from "@/types";
 
 interface RecordFormProps {
@@ -127,6 +127,17 @@ export function RecordForm({ record }: RecordFormProps) {
           otherDefaultValue={record?.humanReviewPlanOther ?? undefined}
         />
 
+        <CheckboxGroup
+          name="aiUseJustification"
+          label="Why is AI appropriate for this task?"
+          description="Select all that apply. This captures the justification for using AI in this workflow."
+          options={[...AI_USE_JUSTIFICATION_OPTIONS]}
+          defaultValues={record?.aiUseJustification ?? []}
+          showOther
+          otherName="aiUseJustificationOther"
+          otherDefaultValue={record?.aiUseJustificationOther ?? undefined}
+        />
+
         <div className="flex items-center gap-3 border-t border-border-subtle pt-6">
           <Button type="submit" disabled={loading}>
             {loading
@@ -135,7 +146,7 @@ export function RecordForm({ record }: RecordFormProps) {
                 : "Creating..."
               : isEdit
                 ? "Save Changes"
-                : "Create Record"}
+                : "Create Permission Slip"}
           </Button>
           <Button
             type="button"

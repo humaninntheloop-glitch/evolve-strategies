@@ -39,6 +39,8 @@ export async function createRecord(formData: FormData): Promise<ActionResult<{ i
     aiUsageTypeOther: (formData.get("aiUsageTypeOther") as string) || undefined,
     humanReviewPlan: formData.getAll("humanReviewPlan") as string[],
     humanReviewPlanOther: (formData.get("humanReviewPlanOther") as string) || undefined,
+    aiUseJustification: formData.getAll("aiUseJustification") as string[],
+    aiUseJustificationOther: (formData.get("aiUseJustificationOther") as string) || undefined,
   };
 
   const parsed = createRecordSchema.safeParse(raw);
@@ -60,6 +62,8 @@ export async function createRecord(formData: FormData): Promise<ActionResult<{ i
         aiUsageTypeOther: parsed.data.aiUsageTypeOther ?? null,
         humanReviewPlan: parsed.data.humanReviewPlan,
         humanReviewPlanOther: parsed.data.humanReviewPlanOther ?? null,
+        aiUseJustification: parsed.data.aiUseJustification,
+        aiUseJustificationOther: parsed.data.aiUseJustificationOther ?? null,
         // Derive legacy fields for backward compat
         distributionContext: deriveDistributionContext(impact),
         highStakesDecision: deriveHighStakesDecision(impact),
@@ -114,6 +118,8 @@ export async function updateRecord(
     aiUsageTypeOther: (formData.get("aiUsageTypeOther") as string) || undefined,
     humanReviewPlan: formData.getAll("humanReviewPlan") as string[],
     humanReviewPlanOther: (formData.get("humanReviewPlanOther") as string) || undefined,
+    aiUseJustification: formData.getAll("aiUseJustification") as string[],
+    aiUseJustificationOther: (formData.get("aiUseJustificationOther") as string) || undefined,
   };
 
   const parsed = updateRecordSchema.safeParse(raw);
@@ -135,6 +141,7 @@ export async function updateRecord(
     // Handle nullable fields
     updateData.aiUsageTypeOther = parsed.data.aiUsageTypeOther ?? null;
     updateData.humanReviewPlanOther = parsed.data.humanReviewPlanOther ?? null;
+    updateData.aiUseJustificationOther = parsed.data.aiUseJustificationOther ?? null;
 
     await prisma.record.update({
       where: { id: recordId },

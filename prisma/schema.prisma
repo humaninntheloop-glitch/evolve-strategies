@@ -94,6 +94,12 @@ model Record {
   aiUsageTypeOther       String?             @map("ai_usage_type_other")
   humanReviewPlan        String[]            @default([]) @map("human_review_plan") @db.Text
   humanReviewPlanOther   String?             @map("human_review_plan_other")
+  aiUseJustification              String[]  @default([]) @map("ai_use_justification") @db.Text
+  aiUseJustificationOther         String?   @map("ai_use_justification_other")
+  reviewerDecisionRationale       String?   @map("reviewer_decision_rationale")
+  reviewerDecisionRationaleOther  String?   @map("reviewer_decision_rationale_other")
+  reviewerValidationReference     String[]  @default([]) @map("reviewer_validation_reference") @db.Text
+  reviewerValidationReferenceOther String?  @map("reviewer_validation_reference_other")
   aiSummary              String?             @map("ai_summary")
   riskLevel              RiskLevel?          @map("risk_level")
   riskJustification      String?             @map("risk_justification")

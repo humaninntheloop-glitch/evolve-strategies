@@ -13,6 +13,11 @@ import {
   AI_OUTPUT_IMPACT_LABELS,
   AI_USAGE_TYPE_LABELS,
   HUMAN_REVIEW_PLAN_LABELS,
+  AI_USE_JUSTIFICATION_LABELS,
+  REVIEWER_DECISION_RATIONALE_OPTIONS,
+  REVIEWER_DECISION_RATIONALE_LABELS,
+  REVIEWER_VALIDATION_REFERENCE_OPTIONS,
+  REVIEWER_VALIDATION_REFERENCE_LABELS,
   DISTRIBUTION_LABELS,
 } from "@/types";
 import {
@@ -25,7 +30,9 @@ import {
 import { deleteRecord } from "@/lib/actions/record-actions";
 import { Dialog, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { PencilSimple, Trash, PaperPlaneTilt, CheckCircle, XCircle, Lock, ArrowCounterClockwise, DownloadSimple, CircleNotch, Sparkle } from "@phosphor-icons/react";
+import { RadioGroup } from "@/components/ui/radio-group";
+import { CheckboxGroup } from "@/components/ui/checkbox-group";
+import { PencilSimple, Trash, PaperPlaneTilt, CheckCircle, XCircle, Lock, ArrowCounterClockwise, DownloadSimple, CircleNotch, Sparkle, ShieldCheck, ShieldSlash } from "@phosphor-icons/react";
 import type { RecordWithRelations, AuditLogEntry, RecordStatus, AuthUser } from "@/types";
 import { getAvailableTransitions } from "@/lib/lifecycle/state-machine";
 
@@ -43,6 +50,12 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
   const [rejectComment, setRejectComment] = useState("");
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [approveComment, setApproveComment] = useState("");
+  const [approveRationale, setApproveRationale] = useState("");
+  const [approveRationaleOther, setApproveRationaleOther] = useState("");
+  const [approveValidationRef, setApproveValidationRef] = useState<string[]>([]);
+  const [approveValidationRefOther, setApproveValidationRefOther] = useState("");
+  const [rejectRationale, setRejectRationale] = useState("");
+  const [rejectRationaleOther, setRejectRationaleOther] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
 
   const availableTransitions = getAvailableTransitions(
@@ -69,27 +82,44 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
   }
 
   async function handleReject() {
-    if (!rejectComment.trim()) return;
+    if (!rejectComment.trim() || !rejectRationale) return;
     setLoading(true);
     setError(null);
-    const result = await rejectRecord(record.id, rejectComment);
+    const result = await rejectRecord(record.id, {
+      comment: rejectComment,
+      decisionRationale: rejectRationale,
+      decisionRationaleOther: rejectRationale === "OTHER" ? rejectRationaleOther : undefined,
+    });
     if (!result.success) {
       setError(result.error ?? "Rejection failed");
     }
     setRejectDialogOpen(false);
     setRejectComment("");
+    setRejectRationale("");
+    setRejectRationaleOther("");
     setLoading(false);
   }
 
   async function handleApprove() {
+    if (!approveRationale) return;
     setLoading(true);
     setError(null);
-    const result = await approveRecord(record.id, approveComment.trim() || undefined);
+    const result = await approveRecord(record.id, {
+      comment: approveComment.trim() || undefined,
+      decisionRationale: approveRationale,
+      decisionRationaleOther: approveRationale === "OTHER" ? approveRationaleOther : undefined,
+      validationReference: approveValidationRef,
+      validationReferenceOther: approveValidationRef.includes("OTHER") ? approveValidationRefOther : undefined,
+    });
     if (!result.success) {
       setError(result.error ?? "Authorization failed");
     }
     setApproveDialogOpen(false);
     setApproveComment("");
+    setApproveRationale("");
+    setApproveRationaleOther("");
+    setApproveValidationRef([]);
+    setApproveValidationRefOther("");
     setLoading(false);
   }
 
@@ -230,7 +260,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
               variant="danger"
               disabled={loading}
               onClick={() => {
-                if (confirm("Delete this draft record?")) {
+                if (confirm("Delete this draft permission slip?")) {
                   deleteRecord(record.id);
                 }
               }}
@@ -246,7 +276,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
         {/* Main content */}
         <div className="space-y-6 lg:col-span-2">
           <Card>
-            <CardTitle>Record Details</CardTitle>
+            <CardTitle>Permission Slip Details</CardTitle>
             <div className="mt-5 space-y-5">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Tool</p>
@@ -308,6 +338,27 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
                       {record.humanReviewPlanOther && (
                         <p className="mt-1.5 text-sm text-on-surface-tertiary italic">
                           Other: {record.humanReviewPlanOther}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {record.aiUseJustification.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Use Justification</p>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {record.aiUseJustification.map((j) => (
+                          <span
+                            key={j}
+                            className="inline-flex items-center rounded-md bg-surface-inset px-2 py-1 text-xs font-medium text-on-surface-secondary"
+                          >
+                            {AI_USE_JUSTIFICATION_LABELS[j] ?? j}
+                          </span>
+                        ))}
+                      </div>
+                      {record.aiUseJustificationOther && (
+                        <p className="mt-1.5 text-sm text-on-surface-tertiary italic">
+                          Other: {record.aiUseJustificationOther}
                         </p>
                       )}
                     </div>
@@ -393,6 +444,101 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             </div>
           </Card>
 
+          {/* Authorization Source of Truth */}
+          {(record.status === "APPROVED" || record.status === "RECORDED") && (
+            <Card>
+              {/* Banner */}
+              <div className="flex items-center gap-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 px-4 py-3">
+                <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" weight="fill" />
+                <span className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+                  Authorized for AI Reliance
+                </span>
+              </div>
+
+              <div className="mt-5 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Authorized By</p>
+                    <p className="mt-1.5 text-sm font-medium text-on-surface">
+                      {record.reviewer?.fullName ?? "Auto-authorized (Low Risk)"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Authorization Date</p>
+                    <p className="mt-1.5 text-sm font-medium text-on-surface">
+                      {formatDate(record.approvedAt)}
+                    </p>
+                  </div>
+                </div>
+
+                {record.reviewerDecisionRationale ? (
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Decision Rationale</p>
+                    <p className="mt-1.5 text-sm text-on-surface-secondary">
+                      {REVIEWER_DECISION_RATIONALE_LABELS[record.reviewerDecisionRationale] ?? record.reviewerDecisionRationale}
+                    </p>
+                    {record.reviewerDecisionRationaleOther && (
+                      <p className="mt-1 text-sm text-on-surface-tertiary italic">
+                        {record.reviewerDecisionRationaleOther}
+                      </p>
+                    )}
+                  </div>
+                ) : !record.reviewer && (
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Decision Rationale</p>
+                    <p className="mt-1.5 text-sm text-on-surface-tertiary italic">
+                      Auto-authorized — Low risk classification
+                    </p>
+                  </div>
+                )}
+
+                {record.reviewerValidationReference.length > 0 && (
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Validation Reference</p>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {record.reviewerValidationReference.map((ref) => (
+                        <span
+                          key={ref}
+                          className="inline-flex items-center rounded-md bg-surface-inset px-2 py-1 text-xs font-medium text-on-surface-secondary"
+                        >
+                          {REVIEWER_VALIDATION_REFERENCE_LABELS[ref] ?? ref}
+                        </span>
+                      ))}
+                    </div>
+                    {record.reviewerValidationReferenceOther && (
+                      <p className="mt-1.5 text-sm text-on-surface-tertiary italic">
+                        Other: {record.reviewerValidationReferenceOther}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {/* Rejected banner */}
+          {record.status === "REJECTED" && record.reviewerDecisionRationale && (
+            <Card>
+              <div className="flex items-center gap-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3">
+                <ShieldSlash className="h-5 w-5 text-red-600 dark:text-red-400" weight="fill" />
+                <span className="text-sm font-semibold text-red-800 dark:text-red-300">
+                  AI Reliance Rejected
+                </span>
+              </div>
+              <div className="mt-5">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Decision Rationale</p>
+                <p className="mt-1.5 text-sm text-on-surface-secondary">
+                  {REVIEWER_DECISION_RATIONALE_LABELS[record.reviewerDecisionRationale] ?? record.reviewerDecisionRationale}
+                </p>
+                {record.reviewerDecisionRationaleOther && (
+                  <p className="mt-1 text-sm text-on-surface-tertiary italic">
+                    {record.reviewerDecisionRationaleOther}
+                  </p>
+                )}
+              </div>
+            </Card>
+          )}
+
           {/* Actions */}
           {availableTransitions.length > 0 && (
             <Card>
@@ -419,15 +565,35 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
       <Dialog open={approveDialogOpen} onClose={() => setApproveDialogOpen(false)}>
         <DialogTitle>Authorize AI Reliance</DialogTitle>
         <DialogDescription>
-          By authorizing this record, you confirm that you have reviewed the AI usage details,
-          risk classification, and human review plan. You are approving the use of AI-generated
-          output in your organization&apos;s workflow under the conditions described.
+          You are authorizing reliance on AI-assisted output in this workflow. Please confirm that
+          appropriate human oversight and validation has occurred before granting this authorization.
         </DialogDescription>
-        <div className="mt-4">
+        <div className="mt-4 space-y-4">
+          <RadioGroup
+            label="Decision Rationale"
+            description="Why are you authorizing this AI usage?"
+            options={[...REVIEWER_DECISION_RATIONALE_OPTIONS]}
+            value={approveRationale}
+            onChange={setApproveRationale}
+            showOther
+            otherValue={approveRationaleOther}
+            onOtherChange={setApproveRationaleOther}
+          />
+          <CheckboxGroup
+            name="approveValidationRef"
+            label="Validation Reference"
+            description="What was the AI output reviewed against before authorizing reliance?"
+            options={[...REVIEWER_VALIDATION_REFERENCE_OPTIONS]}
+            values={approveValidationRef}
+            onChange={setApproveValidationRef}
+            showOther
+            otherValue={approveValidationRefOther}
+            onOtherChange={setApproveValidationRefOther}
+          />
           <Textarea
             id="approveComment"
             label="Reviewer Note (optional)"
-            placeholder="Add a note for the record creator..."
+            placeholder="Add a note for the requestor..."
             rows={3}
             value={approveComment}
             onChange={(e) => setApproveComment(e.target.value)}
@@ -438,11 +604,11 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             Cancel
           </Button>
           <Button
-            disabled={loading}
+            disabled={!approveRationale || approveValidationRef.length === 0 || loading}
             onClick={handleApprove}
           >
             <CheckCircle className="h-3.5 w-3.5" />
-            Authorize AI Reliance
+            Confirm Authorization
           </Button>
         </div>
       </Dialog>
@@ -451,12 +617,23 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
       <Dialog open={rejectDialogOpen} onClose={() => setRejectDialogOpen(false)}>
         <DialogTitle>Reject AI Reliance</DialogTitle>
         <DialogDescription>
-          Provide a reason for rejecting this AI usage request. The creator will be able to see
-          this comment and may revise and resubmit.
+          Provide a reason for rejecting this AI usage request. The requestor will be able to see
+          this feedback and may revise and resubmit.
         </DialogDescription>
-        <div className="mt-4">
+        <div className="mt-4 space-y-4">
+          <RadioGroup
+            label="Decision Rationale"
+            description="Why are you rejecting this AI usage?"
+            options={[...REVIEWER_DECISION_RATIONALE_OPTIONS]}
+            value={rejectRationale}
+            onChange={setRejectRationale}
+            showOther
+            otherValue={rejectRationaleOther}
+            onOtherChange={setRejectRationaleOther}
+          />
           <Textarea
             id="rejectComment"
+            label="Comment"
             placeholder="Reason for rejection..."
             rows={3}
             value={rejectComment}
@@ -469,7 +646,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
           </Button>
           <Button
             variant="danger"
-            disabled={!rejectComment.trim() || loading}
+            disabled={!rejectRationale || !rejectComment.trim() || loading}
             onClick={handleReject}
           >
             Reject AI Reliance

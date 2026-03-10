@@ -13,7 +13,13 @@ import type { ActionResult, RecordStatus } from "@/types";
 async function performTransition(
   recordId: string,
   targetStatus: RecordStatus,
-  options?: { reviewComment?: string }
+  options?: {
+    reviewComment?: string;
+    decisionRationale?: string;
+    decisionRationaleOther?: string;
+    validationReference?: string[];
+    validationReferenceOther?: string;
+  }
 ): Promise<ActionResult> {
   const user = await requireAuth();
 
@@ -50,11 +56,29 @@ async function performTransition(
       if (options?.reviewComment) {
         updateData.reviewComment = options.reviewComment;
       }
+      if (options?.decisionRationale) {
+        updateData.reviewerDecisionRationale = options.decisionRationale;
+      }
+      if (options?.decisionRationaleOther) {
+        updateData.reviewerDecisionRationaleOther = options.decisionRationaleOther;
+      }
+      if (options?.validationReference) {
+        updateData.reviewerValidationReference = options.validationReference;
+      }
+      if (options?.validationReferenceOther) {
+        updateData.reviewerValidationReferenceOther = options.validationReferenceOther;
+      }
     }
     if (targetStatus === "REJECTED") {
       updateData.rejectedAt = new Date();
       updateData.reviewerId = user.id;
       updateData.reviewComment = options?.reviewComment;
+      if (options?.decisionRationale) {
+        updateData.reviewerDecisionRationale = options.decisionRationale;
+      }
+      if (options?.decisionRationaleOther) {
+        updateData.reviewerDecisionRationaleOther = options.decisionRationaleOther;
+      }
     }
     if (targetStatus === "RECORDED") updateData.recordedAt = new Date();
     if (targetStatus === "DRAFT") {
@@ -64,6 +88,10 @@ async function performTransition(
       updateData.riskLevel = null;
       updateData.riskJustification = null;
       updateData.aiSummary = null;
+      updateData.reviewerDecisionRationale = null;
+      updateData.reviewerDecisionRationaleOther = null;
+      updateData.reviewerValidationReference = [];
+      updateData.reviewerValidationReferenceOther = null;
     }
 
     await prisma.record.update({
@@ -78,9 +106,15 @@ async function performTransition(
       actorId: user.id,
       previousState: record.status,
       newState: targetStatus,
-      metadata: options?.reviewComment
-        ? { reviewComment: options.reviewComment }
-        : undefined,
+      metadata: (() => {
+        const m: Record<string, unknown> = {};
+        if (options?.reviewComment) m.reviewComment = options.reviewComment;
+        if (options?.decisionRationale) m.decisionRationale = options.decisionRationale;
+        if (options?.decisionRationaleOther) m.decisionRationaleOther = options.decisionRationaleOther;
+        if (options?.validationReference?.length) m.validationReference = options.validationReference;
+        if (options?.validationReferenceOther) m.validationReferenceOther = options.validationReferenceOther;
+        return Object.keys(m).length > 0 ? m : undefined;
+      })(),
     });
   } catch (error) {
     return { success: false, error: handleActionError(error) };
@@ -137,6 +171,7 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
       aiOutputImpact: record.aiOutputImpact ?? "UNKNOWN",
       aiUsageType: record.aiUsageType,
       humanReviewPlan: record.humanReviewPlan,
+      aiUseJustification: record.aiUseJustification,
       dataSensitivity: record.dataSensitivity,
       riskLevel: riskResult.riskLevel,
       riskJustification: riskResult.justification,
@@ -219,18 +254,36 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
 
 export async function approveRecord(
   recordId: string,
-  comment?: string
+  options: {
+    comment?: string;
+    decisionRationale: string;
+    decisionRationaleOther?: string;
+    validationReference: string[];
+    validationReferenceOther?: string;
+  }
 ): Promise<ActionResult> {
   return performTransition(recordId, "APPROVED", {
-    reviewComment: comment,
+    reviewComment: options.comment,
+    decisionRationale: options.decisionRationale,
+    decisionRationaleOther: options.decisionRationaleOther,
+    validationReference: options.validationReference,
+    validationReferenceOther: options.validationReferenceOther,
   });
 }
 
 export async function rejectRecord(
   recordId: string,
-  comment: string
+  options: {
+    comment: string;
+    decisionRationale: string;
+    decisionRationaleOther?: string;
+  }
 ): Promise<ActionResult> {
-  return performTransition(recordId, "REJECTED", { reviewComment: comment });
+  return performTransition(recordId, "REJECTED", {
+    reviewComment: options.comment,
+    decisionRationale: options.decisionRationale,
+    decisionRationaleOther: options.decisionRationaleOther,
+  });
 }
 
 export async function finalizeRecord(recordId: string): Promise<ActionResult> {

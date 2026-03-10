@@ -9,6 +9,9 @@ import {
   AI_OUTPUT_IMPACT_LABELS,
   AI_USAGE_TYPE_LABELS,
   HUMAN_REVIEW_PLAN_LABELS,
+  AI_USE_JUSTIFICATION_LABELS,
+  REVIEWER_DECISION_RATIONALE_LABELS,
+  REVIEWER_VALIDATION_REFERENCE_LABELS,
   DISTRIBUTION_LABELS,
   RISK_LABELS,
 } from "@/types";
@@ -72,7 +75,7 @@ async function generateSlipPdf(
   organizationName: string
 ): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  const page = doc.addPage([595.28, 841.89]); // A4
+  let page = doc.addPage([595.28, 841.89]); // A4
   const { width, height } = page.getSize();
 
   const regular = await doc.embedFont(StandardFonts.Helvetica);
@@ -98,6 +101,13 @@ async function generateSlipPdf(
   // ── Helpers ──────────────────────────────────────────────
   type Font = typeof regular;
   type Color = ReturnType<typeof rgb>;
+
+  const ensureSpace = (needed: number) => {
+    if (y - needed < 60) {
+      page = doc.addPage([595.28, 841.89]);
+      y = height - M;
+    }
+  };
 
   const text = (s: string, x: number, yy: number, opts: { font?: Font; size?: number; color?: Color } = {}) => {
     page.drawText(s, { x, y: yy, size: opts.size ?? 10, font: opts.font ?? regular, color: opts.color ?? C.body });
@@ -292,6 +302,7 @@ async function generateSlipPdf(
 
     // Human Review Plan
     if (record.humanReviewPlan.length > 0) {
+      ensureSpace(60);
       label("Human Review Plan", M, y);
       y -= 16;
       const planText = record.humanReviewPlan
@@ -304,6 +315,26 @@ async function generateSlipPdf(
       }
       if (record.humanReviewPlanOther) {
         text(`Other: ${record.humanReviewPlanOther}`, M, y, { size: 9, color: C.medium });
+        y -= 13;
+      }
+      y -= 10;
+    }
+
+    // AI Use Justification
+    if (record.aiUseJustification.length > 0) {
+      ensureSpace(60);
+      label("AI Use Justification", M, y);
+      y -= 16;
+      const justText = record.aiUseJustification
+        .map((j: string) => AI_USE_JUSTIFICATION_LABELS[j] ?? j)
+        .join(", ");
+      const justLines = wrap(justText, regular, 9.5, W);
+      for (const line of justLines) {
+        text(line, M, y, { size: 9.5, color: C.body });
+        y -= 13;
+      }
+      if (record.aiUseJustificationOther) {
+        text(`Other: ${record.aiUseJustificationOther}`, M, y, { size: 9, color: C.medium });
         y -= 13;
       }
       y -= 10;
@@ -384,6 +415,7 @@ async function generateSlipPdf(
   // ═══════════════════════════════════════════════════════════
 
   if (record.aiSummary) {
+    ensureSpace(80);
     label("AI Summary", M, y);
     y -= 16;
 
@@ -406,6 +438,7 @@ async function generateSlipPdf(
   // ═══════════════════════════════════════════════════════════
 
   if (record.riskJustification) {
+    ensureSpace(80);
     label("Risk Assessment", M, y);
     y -= 16;
 
@@ -428,6 +461,7 @@ async function generateSlipPdf(
   // ═══════════════════════════════════════════════════════════
 
   if (record.reviewComment) {
+    ensureSpace(80);
     label("Review Comment", M, y);
     y -= 16;
 
@@ -453,9 +487,76 @@ async function generateSlipPdf(
   }
 
   // ═══════════════════════════════════════════════════════════
+  //  AUTHORIZATION DETAILS
+  // ═══════════════════════════════════════════════════════════
+
+  {
+    ensureSpace(120);
+    const isAutoApproved = !record.reviewer;
+
+    // Authorization banner
+    const authBannerH = 28;
+    rect(M, y - authBannerH, W, authBannerH, { fill: C.emeraldBg, border: C.emeraldBorder });
+    const authText = "AUTHORIZED FOR AI RELIANCE";
+    const authW = bold.widthOfTextAtSize(authText, 8);
+    text(authText, M + (W - authW) / 2, y - authBannerH + 10, { font: bold, size: 8, color: C.emeraldDark });
+    y -= authBannerH + 16;
+
+    // 2-column: Authorized By + Authorization Date
+    const halfW = W / 2;
+    label("Authorized By", M, y);
+    label("Authorization Date", M + halfW, y);
+    y -= 14;
+    text(isAutoApproved ? "Auto-authorized (Low Risk)" : record.reviewer!.fullName, M, y, { font: bold, size: 10, color: C.black });
+    text(formatDate(record.approvedAt), M + halfW, y, { font: bold, size: 10, color: C.black });
+    y -= 20;
+
+    // Decision Rationale
+    if (record.reviewerDecisionRationale) {
+      label("Decision Rationale", M, y);
+      y -= 14;
+      const ratText = REVIEWER_DECISION_RATIONALE_LABELS[record.reviewerDecisionRationale] ?? record.reviewerDecisionRationale;
+      text(ratText, M, y, { size: 9.5, color: C.body });
+      y -= 13;
+      if (record.reviewerDecisionRationaleOther) {
+        text(record.reviewerDecisionRationaleOther, M, y, { size: 9, color: C.medium });
+        y -= 13;
+      }
+      y -= 6;
+    } else if (isAutoApproved) {
+      label("Decision Rationale", M, y);
+      y -= 14;
+      text("Auto-authorized — Low risk classification", M, y, { size: 9.5, color: C.medium });
+      y -= 20;
+    }
+
+    // Validation Reference
+    if (record.reviewerValidationReference.length > 0) {
+      label("Validation Reference", M, y);
+      y -= 14;
+      const valText = record.reviewerValidationReference
+        .map((v: string) => REVIEWER_VALIDATION_REFERENCE_LABELS[v] ?? v)
+        .join(", ");
+      const valLines = wrap(valText, regular, 9.5, W);
+      for (const line of valLines) {
+        text(line, M, y, { size: 9.5, color: C.body });
+        y -= 13;
+      }
+      if (record.reviewerValidationReferenceOther) {
+        text(`Other: ${record.reviewerValidationReferenceOther}`, M, y, { size: 9, color: C.medium });
+        y -= 13;
+      }
+      y -= 6;
+    }
+
+    y -= 10;
+  }
+
+  // ═══════════════════════════════════════════════════════════
   //  DIVIDER
   // ═══════════════════════════════════════════════════════════
 
+  ensureSpace(100);
   y = hr(y);
 
   // ═══════════════════════════════════════════════════════════
@@ -486,7 +587,11 @@ async function generateSlipPdf(
   // ═══════════════════════════════════════════════════════════
 
   const watermark = "This document was generated by Human In The Loop";
-  textCentered(watermark, M + 10, { size: 7, color: C.rule });
+  const watermarkY = 30;
+  const wmFont = regular;
+  const wmSize = 7;
+  const wmW = wmFont.widthOfTextAtSize(watermark, wmSize);
+  page.drawText(watermark, { x: M + (W - wmW) / 2, y: watermarkY, size: wmSize, font: wmFont, color: C.rule });
 
   return doc.save();
 }

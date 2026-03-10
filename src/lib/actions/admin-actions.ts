@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/dal/auth";
 import { prisma } from "@/lib/prisma";
 import { inviteUserSchema } from "@/lib/validations/auth-schemas";
 import { handleActionError } from "@/lib/errors";
+import { sendInviteEmail } from "@/lib/email/resend";
 import { z } from "zod";
 import type { ActionResult, UserRole } from "@/types";
 
@@ -62,53 +63,42 @@ export async function inviteUser(formData: FormData): Promise<ActionResult<strin
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
     const redirectTo = `${siteUrl}/auth/callback?next=/reset-password`;
 
-    // Try sending an invite email first (works when SMTP is configured)
-    const { data: inviteData, error: inviteError } =
-      await supabase.auth.admin.inviteUserByEmail(parsed.data.email, {
-        data: { full_name: parsed.data.fullName },
-        redirectTo,
-      });
-
-    let userId: string;
-    let setupLink = "";
-
-    if (!inviteError && inviteData.user) {
-      // Invite email sent successfully
-      userId = inviteData.user.id;
-    } else {
-      // Fallback: create user manually + generate a shareable link
-      console.warn("Invite email failed, falling back to manual link:", inviteError?.message);
-
-      const tempPassword = `Temp${Math.random().toString(36).slice(2)}.${Date.now()}!`;
-      const { data: authData, error: authError } =
-        await supabase.auth.admin.createUser({
-          email: parsed.data.email,
-          password: tempPassword,
-          email_confirm: true,
-          user_metadata: { full_name: parsed.data.fullName },
-        });
-
-      if (authError || !authData.user) {
-        return {
-          success: false,
-          error: handleActionError(authError ?? new Error("Failed to create user account")),
-        };
-      }
-
-      userId = authData.user.id;
-
-      // Generate a recovery token and build a direct link to our callback
-      const { data: linkData } = await supabase.auth.admin.generateLink({
-        type: "recovery",
+    // Create user via Supabase Auth admin API
+    const tempPassword = `Temp${Math.random().toString(36).slice(2)}.${Date.now()}!`;
+    const { data: authData, error: authError } =
+      await supabase.auth.admin.createUser({
         email: parsed.data.email,
-        options: { redirectTo },
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: { full_name: parsed.data.fullName },
       });
 
-      const hashedToken = linkData?.properties?.hashed_token;
-      if (hashedToken) {
-        setupLink = `${siteUrl}/auth/callback?token_hash=${hashedToken}&type=recovery&next=/reset-password`;
-      }
+    if (authError || !authData.user) {
+      return {
+        success: false,
+        error: handleActionError(authError ?? new Error("Failed to create user account")),
+      };
     }
+
+    const userId = authData.user.id;
+
+    // Generate a recovery link for password setup
+    const { data: linkData } = await supabase.auth.admin.generateLink({
+      type: "recovery",
+      email: parsed.data.email,
+      options: { redirectTo },
+    });
+
+    const hashedToken = linkData?.properties?.hashed_token;
+    const setupLink = hashedToken
+      ? `${siteUrl}/auth/callback?token_hash=${hashedToken}&type=recovery&next=/reset-password`
+      : "";
+
+    // Create user in our database
+    const org = await prisma.organization.findUnique({
+      where: { id: admin.organizationId },
+      select: { name: true },
+    });
 
     await prisma.user.create({
       data: {
@@ -120,8 +110,21 @@ export async function inviteUser(formData: FormData): Promise<ActionResult<strin
       },
     });
 
+    // Send invite email via Resend
+    let emailSent = false;
+    if (setupLink) {
+      const emailResult = await sendInviteEmail({
+        to: parsed.data.email,
+        fullName: parsed.data.fullName,
+        organizationName: org?.name ?? "AI Governance Platform",
+        setupLink,
+      });
+      emailSent = emailResult.success;
+    }
+
     revalidatePath("/admin/users");
-    return { success: true, data: setupLink };
+    // Return empty string if email sent (UI shows "Invite sent"), otherwise return link for manual sharing
+    return { success: true, data: emailSent ? "" : setupLink };
   } catch (error) {
     return { success: false, error: handleActionError(error) };
   }

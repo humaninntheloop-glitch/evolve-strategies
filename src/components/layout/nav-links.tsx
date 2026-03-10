@@ -26,7 +26,7 @@ interface NavLink {
 
 const links: NavLink[] = [
   { href: "/dashboard", label: "Dashboard", icon: SquaresFour, section: "Overview" },
-  { href: "/records", label: "Records", icon: FileText, section: "Overview" },
+  { href: "/records", label: "Permission Slips", icon: FileText, section: "Overview" },
   { href: "/review", label: "Review Queue", icon: ClipboardText, roles: ["REVIEWER", "ADMIN"], section: "Workflow" },
   { href: "/audit-log", label: "Audit Log", icon: Scroll, roles: ["ADMIN"], section: "Workflow" },
   { href: "/admin/users", label: "Users", icon: Users, roles: ["ADMIN"], section: "Admin" },

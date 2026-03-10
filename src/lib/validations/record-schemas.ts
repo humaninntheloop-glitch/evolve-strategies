@@ -29,6 +29,10 @@ export const createRecordSchema = z
       .array(z.string())
       .min(1, "Select at least one human review plan"),
     humanReviewPlanOther: z.string().max(500).optional(),
+    aiUseJustification: z
+      .array(z.string())
+      .min(1, "Select at least one justification for AI use"),
+    aiUseJustificationOther: z.string().max(500).optional(),
   })
   .refine(
     (data) =>
@@ -41,6 +45,12 @@ export const createRecordSchema = z
       !data.humanReviewPlan.includes("OTHER") ||
       (data.humanReviewPlanOther && data.humanReviewPlanOther.trim().length > 0),
     { message: "Please specify the other review plan", path: ["humanReviewPlanOther"] }
+  )
+  .refine(
+    (data) =>
+      !data.aiUseJustification.includes("OTHER") ||
+      (data.aiUseJustificationOther && data.aiUseJustificationOther.trim().length > 0),
+    { message: "Please specify the other justification", path: ["aiUseJustificationOther"] }
   );
 
 export const updateRecordSchema = z
@@ -69,6 +79,8 @@ export const updateRecordSchema = z
     aiUsageTypeOther: z.string().max(500).optional(),
     humanReviewPlan: z.array(z.string()).optional(),
     humanReviewPlanOther: z.string().max(500).optional(),
+    aiUseJustification: z.array(z.string()).optional(),
+    aiUseJustificationOther: z.string().max(500).optional(),
   })
   .refine(
     (data) =>
@@ -81,6 +93,12 @@ export const updateRecordSchema = z
       !data.humanReviewPlan?.includes("OTHER") ||
       (data.humanReviewPlanOther && data.humanReviewPlanOther.trim().length > 0),
     { message: "Please specify the other review plan", path: ["humanReviewPlanOther"] }
+  )
+  .refine(
+    (data) =>
+      !data.aiUseJustification?.includes("OTHER") ||
+      (data.aiUseJustificationOther && data.aiUseJustificationOther.trim().length > 0),
+    { message: "Please specify the other justification", path: ["aiUseJustificationOther"] }
   );
 
 export const reviewCommentSchema = z.object({
@@ -90,6 +108,28 @@ export const reviewCommentSchema = z.object({
     .max(2000, "Comment must be under 2000 characters"),
 });
 
+export const reviewDecisionSchema = z
+  .object({
+    comment: z.string().max(2000).optional(),
+    decisionRationale: z.string().min(1, "Please select a decision rationale"),
+    decisionRationaleOther: z.string().max(500).optional(),
+    validationReference: z.array(z.string()).optional(),
+    validationReferenceOther: z.string().max(500).optional(),
+  })
+  .refine(
+    (data) =>
+      data.decisionRationale !== "OTHER" ||
+      (data.decisionRationaleOther && data.decisionRationaleOther.trim().length > 0),
+    { message: "Please specify the other rationale", path: ["decisionRationaleOther"] }
+  )
+  .refine(
+    (data) =>
+      !data.validationReference?.includes("OTHER") ||
+      (data.validationReferenceOther && data.validationReferenceOther.trim().length > 0),
+    { message: "Please specify the other validation reference", path: ["validationReferenceOther"] }
+  );
+
 export type CreateRecordInput = z.infer<typeof createRecordSchema>;
 export type UpdateRecordInput = z.infer<typeof updateRecordSchema>;
 export type ReviewCommentInput = z.infer<typeof reviewCommentSchema>;
+export type ReviewDecisionInput = z.infer<typeof reviewDecisionSchema>;
