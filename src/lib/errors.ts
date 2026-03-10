@@ -10,8 +10,9 @@ const FRIENDLY_MESSAGES: Record<string, string> = {
 const SUPABASE_PATTERNS: [RegExp, string][] = [
   [/rate limit/i, "Too many attempts. Please wait a moment and try again."],
   [/for security purposes/i, "Too many attempts. Please wait a moment and try again."],
-  [/already registered/i, "An account with this email already exists."],
-  [/email.*taken/i, "An account with this email already exists."],
+  [/already registered/i, "A user with this email already exists."],
+  [/email.*taken/i, "A user with this email already exists."],
+  [/email_exists/i, "A user with this email already exists."],
   [/invalid.*credentials/i, "Invalid email or password."],
   [/password.*weak/i, "Password is too weak. Please choose a stronger one."],
 ];
@@ -35,9 +36,13 @@ export function handleActionError(error: unknown): string {
         ? error
         : "";
 
-  if (message) {
+  // Supabase AuthApiError includes a `code` property (e.g. "email_exists")
+  const code = (error as { code?: string })?.code ?? "";
+  const matchStr = `${message} ${code}`;
+
+  if (matchStr.trim()) {
     for (const [pattern, friendly] of SUPABASE_PATTERNS) {
-      if (pattern.test(message)) return friendly;
+      if (pattern.test(matchStr)) return friendly;
     }
   }
 
