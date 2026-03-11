@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { NavLinks } from "./nav-links";
 import type { UserRole } from "@/types";
 
@@ -12,7 +13,7 @@ export function Sidebar({ role, organizationName, isSuperAdmin = false }: Sideba
   return (
     <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r bg-[var(--sidebar-bg)] border-[var(--sidebar-border)]">
       {/* Logo & Organization */}
-      <div className="flex items-center gap-3 px-5 h-14 border-b border-[var(--sidebar-border)]">
+      <Link href="/dashboard" className="flex items-center gap-3 px-5 h-14 border-b border-[var(--sidebar-border)] transition-colors hover:bg-[var(--sidebar-hover)]">
         <Image
           src="/logo-icon.png"
           alt="Human In The Loop"
@@ -24,7 +25,7 @@ export function Sidebar({ role, organizationName, isSuperAdmin = false }: Sideba
           <h1 className="truncate text-sm font-semibold tracking-tight text-on-surface">{organizationName}</h1>
           <p className="text-[10px] text-on-surface-quaternary leading-none">Human In The Loop</p>
         </div>
-      </div>
+      </Link>
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-3 py-4">

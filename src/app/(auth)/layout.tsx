@@ -29,22 +29,22 @@ export default function AuthLayout({
           <div className="space-y-10">
             <div>
               <h2 className="text-[34px] font-bold leading-[1.1] tracking-tight text-white">
-                Document every
+                AI Governance
                 <br />
-                AI decision.
+                Workflow
               </h2>
               <p className="mt-5 max-w-[340px] text-[15px] leading-relaxed text-zinc-400">
-                The compliance platform for teams using AI in regulated
-                workflows. Track, review, and approve — all in one place.
+                The AI governance platform for regulated workflows.
+                Authorize, review, and audit — all in one place.
               </p>
             </div>
 
             {/* Feature list */}
             <div className="space-y-4">
               {[
-                "Real-time audit trail for every permission slip",
-                "Role-based review and approval workflow",
-                "Immutable storage for compliance",
+                "Real-time audit trail for every AI authorization",
+                "Role-based governance and approval workflow",
+                "Immutable records for regulatory compliance",
               ].map((text) => (
                 <div key={text} className="flex items-start gap-3">
                   <SealCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />

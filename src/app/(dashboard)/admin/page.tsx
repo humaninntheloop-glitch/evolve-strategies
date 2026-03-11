@@ -49,7 +49,7 @@ export default async function AdminPage() {
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
           { label: "Total Users", value: users.length },
-          { label: "Total Permission Slips", value: stats.totalRecords },
+          { label: "Authorization Requests", value: stats.totalRecords },
           { label: "Recorded", value: stats.recordedRecords },
         ].map((stat) => (
           <Card key={stat.label}>

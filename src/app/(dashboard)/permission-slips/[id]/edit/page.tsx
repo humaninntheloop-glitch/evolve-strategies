@@ -25,9 +25,9 @@ export default async function EditRecordPage({ params }: EditRecordPageProps) {
   return (
     <div className="animate-fade-in-up">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-on-surface">Edit Permission Slip</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-on-surface">Edit Authorization Request</h1>
         <p className="mt-1 text-sm text-on-surface-secondary">
-          Update your draft permission slip before submitting for review.
+          Update your draft authorization request before submitting for review.
         </p>
       </div>
       <div className="max-w-2xl">
