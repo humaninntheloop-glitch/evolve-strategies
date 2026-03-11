@@ -34,14 +34,14 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
   return createPortal(
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px] p-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 backdrop-blur-[2px] p-4 animate-fade-in"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose();
       }}
     >
       <div
         className={cn(
-          "relative w-full max-w-lg rounded-xl border border-border-default bg-surface-elevated p-6 shadow-xl animate-scale-in",
+          "relative my-auto w-full max-w-lg max-h-[calc(100vh-2rem)] overflow-y-auto rounded-xl border border-border-default bg-surface-elevated p-6 shadow-xl animate-scale-in",
           className
         )}
       >

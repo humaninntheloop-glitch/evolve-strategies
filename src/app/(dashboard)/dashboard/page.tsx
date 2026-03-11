@@ -60,7 +60,7 @@ export default async function DashboardPage() {
           <p className="mt-1 text-sm text-on-surface-secondary">
             {isAdminOrReviewer
               ? "Here\u2019s what\u2019s happening across your organization."
-              : "Here\u2019s an overview of your AI usage records."}
+              : "Here\u2019s an overview of your AI permission slips."}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -72,7 +72,7 @@ export default async function DashboardPage() {
               </Button>
             </Link>
           )}
-          <Link href="/records/new">
+          <Link href="/permission-slips/new">
             <Button size="sm">
               <Plus className="h-4 w-4" />
               New Permission Slip
@@ -105,7 +105,7 @@ export default async function DashboardPage() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-on-surface">Recent Permission Slips</h2>
             <Link
-              href="/records"
+              href="/permission-slips"
               className="inline-flex items-center gap-1 text-[13px] font-medium text-on-surface-tertiary transition-colors hover:text-on-surface"
             >
               View all
@@ -121,7 +121,7 @@ export default async function DashboardPage() {
                 <p className="mt-1 text-xs text-on-surface-quaternary">
                   Create your first AI permission slip to get started.
                 </p>
-                <Link href="/records/new" className="mt-4">
+                <Link href="/permission-slips/new" className="mt-4">
                   <Button size="sm">
                     <Plus className="h-4 w-4" />
                     Create Permission Slip
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
               {recentRecords.map((record) => (
                 <Link
                   key={record.id}
-                  href={`/records/${record.id}`}
+                  href={`/permission-slips/${record.id}`}
                   className="group flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-surface-inset first:rounded-t-xl last:rounded-b-xl"
                 >
                   <div className="min-w-0 flex-1">
@@ -197,7 +197,7 @@ export default async function DashboardPage() {
           <div>
             <h2 className="mb-4 text-sm font-semibold text-on-surface">Quick Actions</h2>
             <div className="space-y-2">
-              <Link href="/records/new" className="group block">
+              <Link href="/permission-slips/new" className="group block">
                 <Card className="flex items-center gap-3 py-3 px-4 transition-all duration-150 hover:shadow-md hover:border-border-strong">
                   <Plus className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />
                   <div className="flex-1">

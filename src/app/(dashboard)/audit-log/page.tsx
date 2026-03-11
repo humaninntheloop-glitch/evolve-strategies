@@ -59,7 +59,7 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
                   Comment
                 </th>
                 <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">
-                  Record
+                  Slip
                 </th>
               </tr>
             </thead>
@@ -97,7 +97,7 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
                   </td>
                   <td className="px-4 py-3.5">
                     <Link
-                      href={`/records/${log.recordId}`}
+                      href={`/permission-slips/${log.recordId}`}
                       className="text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
                     >
                       View

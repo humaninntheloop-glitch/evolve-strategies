@@ -28,7 +28,7 @@ const TRANSITION_RULES: TransitionRule[] = [
     allowedRoles: ["EMPLOYEE", "ADMIN"],
     condition: (ctx) => {
       if (ctx.actorId !== ctx.creatorId) {
-        return { allowed: false, reason: "Only the creator can submit their own record" };
+        return { allowed: false, reason: "Only the creator can submit their own permission slip" };
       }
       return { allowed: true };
     },
@@ -39,7 +39,7 @@ const TRANSITION_RULES: TransitionRule[] = [
     allowedRoles: ["REVIEWER", "ADMIN"],
     condition: (ctx) => {
       if (ctx.actorId === ctx.creatorId && ctx.actorRole !== "ADMIN") {
-        return { allowed: false, reason: "Cannot approve your own record" };
+        return { allowed: false, reason: "Cannot approve your own permission slip" };
       }
       return { allowed: true };
     },
@@ -50,10 +50,10 @@ const TRANSITION_RULES: TransitionRule[] = [
     allowedRoles: ["REVIEWER", "ADMIN"],
     condition: (ctx) => {
       if (ctx.actorId === ctx.creatorId && ctx.actorRole !== "ADMIN") {
-        return { allowed: false, reason: "Cannot reject your own record" };
+        return { allowed: false, reason: "Cannot reject your own permission slip" };
       }
       if (!ctx.reviewComment?.trim()) {
-        return { allowed: false, reason: "A comment is required when rejecting a record" };
+        return { allowed: false, reason: "A comment is required when rejecting a permission slip" };
       }
       return { allowed: true };
     },
@@ -62,17 +62,6 @@ const TRANSITION_RULES: TransitionRule[] = [
     from: "APPROVED",
     to: "RECORDED",
     allowedRoles: ["REVIEWER", "ADMIN"],
-  },
-  {
-    from: "REJECTED",
-    to: "DRAFT",
-    allowedRoles: ["EMPLOYEE", "ADMIN"],
-    condition: (ctx) => {
-      if (ctx.actorId !== ctx.creatorId) {
-        return { allowed: false, reason: "Only the creator can return their record to draft" };
-      }
-      return { allowed: true };
-    },
   },
 ];
 

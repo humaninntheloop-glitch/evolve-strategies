@@ -61,7 +61,7 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
               : "All organization permission slips"}
           </p>
         </div>
-        <Link href="/records/new">
+        <Link href="/permission-slips/new">
           <Button>
             <Plus className="h-4 w-4" />
             New Permission Slip
@@ -89,7 +89,7 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
               : "Create your first AI permission slip to get started."}
           </p>
           {!statusParam && !creatorParam && !fromParam && !toParam && (
-            <Link href="/records/new" className="mt-5">
+            <Link href="/permission-slips/new" className="mt-5">
               <Button size="sm">
                 <Plus className="h-4 w-4" />
                 Create Permission Slip

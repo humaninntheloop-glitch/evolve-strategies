@@ -32,13 +32,13 @@ export function RecordFilters({ users, showCreatorFilter }: RecordFiltersProps) 
       } else {
         params.delete(key);
       }
-      router.push(`/records?${params.toString()}`);
+      router.push(`/permission-slips?${params.toString()}`);
     },
     [router, searchParams]
   );
 
   const clearFilters = useCallback(() => {
-    router.push("/records");
+    router.push("/permission-slips");
   }, [router]);
 
   const hasFilters = currentStatus || currentCreator || currentFrom || currentTo;

@@ -25,14 +25,13 @@ import {
   approveRecord,
   rejectRecord,
   finalizeRecord,
-  returnToDraft,
 } from "@/lib/actions/lifecycle-actions";
 import { deleteRecord } from "@/lib/actions/record-actions";
 import { Dialog, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { CheckboxGroup } from "@/components/ui/checkbox-group";
-import { PencilSimple, Trash, PaperPlaneTilt, CheckCircle, XCircle, Lock, ArrowCounterClockwise, DownloadSimple, CircleNotch, Sparkle, ShieldCheck, ShieldSlash } from "@phosphor-icons/react";
+import { PencilSimple, Trash, PaperPlaneTilt, CheckCircle, XCircle, Lock, DownloadSimple, CircleNotch, Sparkle, ShieldCheck, ShieldSlash } from "@phosphor-icons/react";
 import type { RecordWithRelations, AuditLogEntry, RecordStatus, AuthUser } from "@/types";
 import { getAvailableTransitions } from "@/lib/lifecycle/state-machine";
 
@@ -57,6 +56,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
   const [rejectRationale, setRejectRationale] = useState("");
   const [rejectRationaleOther, setRejectRationaleOther] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [confirmApproveOpen, setConfirmApproveOpen] = useState(false);
 
   const availableTransitions = getAvailableTransitions(
     record.status,
@@ -174,19 +174,6 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             Finalize
           </Button>
         );
-      case "DRAFT":
-        return (
-          <Button
-            key="return"
-            size="sm"
-            variant="secondary"
-            disabled={loading}
-            onClick={() => handleAction(() => returnToDraft(record.id))}
-          >
-            <ArrowCounterClockwise className="h-3.5 w-3.5" />
-            Return to Draft
-          </Button>
-        );
       default:
         return null;
     }
@@ -222,7 +209,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
               onClick={async () => {
                 setIsDownloading(true);
                 try {
-                  const res = await fetch(`/records/${record.id}/slip`);
+                  const res = await fetch(`/permission-slips/${record.id}/slip`);
                   if (!res.ok) throw new Error("Download failed");
                   const blob = await res.blob();
                   const url = URL.createObjectURL(blob);
@@ -247,7 +234,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             </Button>
           )}
           {canEdit && (
-            <Link href={`/records/${record.id}/edit`}>
+            <Link href={`/permission-slips/${record.id}/edit`}>
               <Button size="sm" variant="secondary">
                 <PencilSimple className="h-3.5 w-3.5" />
                 Edit
@@ -572,6 +559,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
           <RadioGroup
             label="Decision Rationale"
             description="Why are you authorizing this AI usage?"
+            required
             options={[...REVIEWER_DECISION_RATIONALE_OPTIONS]}
             value={approveRationale}
             onChange={setApproveRationale}
@@ -583,6 +571,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             name="approveValidationRef"
             label="Validation Reference"
             description="What was the AI output reviewed against before authorizing reliance?"
+            required
             options={[...REVIEWER_VALIDATION_REFERENCE_OPTIONS]}
             values={approveValidationRef}
             onChange={setApproveValidationRef}
@@ -592,7 +581,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
           />
           <Textarea
             id="approveComment"
-            label="Reviewer Note (optional)"
+            label={record.riskLevel === "HIGH" ? "Reviewer Note (required)" : "Reviewer Note (optional)"}
             placeholder="Add a note for the requestor..."
             rows={3}
             value={approveComment}
@@ -604,11 +593,41 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             Cancel
           </Button>
           <Button
-            disabled={!approveRationale || approveValidationRef.length === 0 || loading}
-            onClick={handleApprove}
+            disabled={!approveRationale || approveValidationRef.length === 0 || (record.riskLevel === "HIGH" && !approveComment.trim()) || loading}
+            onClick={() => setConfirmApproveOpen(true)}
           >
             <CheckCircle className="h-3.5 w-3.5" />
             Confirm Authorization
+          </Button>
+        </div>
+      </Dialog>
+
+      {/* Confirm Authorization Dialog */}
+      <Dialog open={confirmApproveOpen} onClose={() => setConfirmApproveOpen(false)}>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+            <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" weight="fill" />
+          </div>
+          <div>
+            <DialogTitle>Confirm Authorization</DialogTitle>
+            <DialogDescription>
+              You are authorizing reliance on AI-generated output for this workflow. Please confirm that appropriate human review and validation has occurred.
+            </DialogDescription>
+          </div>
+        </div>
+        <div className="mt-4 flex justify-end gap-3">
+          <Button variant="secondary" onClick={() => setConfirmApproveOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            disabled={loading}
+            onClick={() => {
+              setConfirmApproveOpen(false);
+              handleApprove();
+            }}
+          >
+            <CheckCircle className="h-3.5 w-3.5" />
+            Submit Authorization
           </Button>
         </div>
       </Dialog>

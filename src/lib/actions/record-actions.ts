@@ -79,8 +79,8 @@ export async function createRecord(formData: FormData): Promise<ActionResult<{ i
       newState: "DRAFT",
     });
 
-    revalidatePath("/records");
-    redirect(`/records/${record.id}`);
+    revalidatePath("/permission-slips");
+    redirect(`/permission-slips/${record.id}`);
   } catch (error) {
     if (isRedirectError(error)) throw error;
     return { success: false, error: handleActionError(error) };
@@ -99,15 +99,15 @@ export async function updateRecord(
   });
 
   if (!record) {
-    return { success: false, error: "Record not found" };
+    return { success: false, error: "Permission slip not found" };
   }
 
   if (record.status !== "DRAFT") {
-    return { success: false, error: "Only draft records can be edited" };
+    return { success: false, error: "Only draft permission slips can be edited" };
   }
 
   if (record.creatorId !== user.id && user.role !== "ADMIN") {
-    return { success: false, error: "You can only edit your own records" };
+    return { success: false, error: "You can only edit your own permission slips" };
   }
 
   const raw = {
@@ -160,7 +160,7 @@ export async function updateRecord(
     return { success: false, error: handleActionError(error) };
   }
 
-  revalidatePath(`/records/${recordId}`);
+  revalidatePath(`/permission-slips/${recordId}`);
   return { success: true, data: undefined };
 }
 
@@ -172,15 +172,15 @@ export async function deleteRecord(recordId: string): Promise<ActionResult> {
   });
 
   if (!record) {
-    return { success: false, error: "Record not found" };
+    return { success: false, error: "Permission slip not found" };
   }
 
   if (record.status !== "DRAFT") {
-    return { success: false, error: "Only draft records can be deleted" };
+    return { success: false, error: "Only draft permission slips can be deleted" };
   }
 
   if (record.creatorId !== user.id && user.role !== "ADMIN") {
-    return { success: false, error: "You can only delete your own records" };
+    return { success: false, error: "You can only delete your own permission slips" };
   }
 
   try {
@@ -188,8 +188,8 @@ export async function deleteRecord(recordId: string): Promise<ActionResult> {
     await prisma.$executeRaw`DELETE FROM audit_logs WHERE record_id = ${recordId}::uuid`;
     await prisma.record.delete({ where: { id: recordId } });
 
-    revalidatePath("/records");
-    redirect("/records");
+    revalidatePath("/permission-slips");
+    redirect("/permission-slips");
   } catch (error) {
     if (isRedirectError(error)) throw error;
     return { success: false, error: handleActionError(error) };

@@ -85,7 +85,7 @@ export function ReviewQueueTable({ records }: ReviewQueueTableProps) {
               </td>
               <td className="px-4 py-3.5 text-right">
                 <Link
-                  href={`/records/${record.id}`}
+                  href={`/permission-slips/${record.id}`}
                   className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-zinc-700 dark:text-zinc-300 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 >
                   Review

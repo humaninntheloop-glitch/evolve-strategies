@@ -42,7 +42,7 @@ export default function AuthLayout({
             {/* Feature list */}
             <div className="space-y-4">
               {[
-                "Real-time audit trail for every record",
+                "Real-time audit trail for every permission slip",
                 "Role-based review and approval workflow",
                 "Immutable storage for compliance",
               ].map((text) => (
