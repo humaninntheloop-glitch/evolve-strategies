@@ -58,11 +58,6 @@ const TRANSITION_RULES: TransitionRule[] = [
       return { allowed: true };
     },
   },
-  {
-    from: "APPROVED",
-    to: "RECORDED",
-    allowedRoles: ["REVIEWER", "ADMIN"],
-  },
 ];
 
 export function validateTransition(ctx: TransitionContext): TransitionResult {

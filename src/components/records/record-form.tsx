@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { CheckboxGroup } from "@/components/ui/checkbox-group";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { Card } from "@/components/ui/card";
 import { createRecord, updateRecord } from "@/lib/actions/record-actions";
 import { AI_USAGE_TYPE_OPTIONS, HUMAN_REVIEW_PLAN_OPTIONS, AI_USE_JUSTIFICATION_OPTIONS } from "@/types";
@@ -63,7 +64,7 @@ export function RecordForm({ record }: RecordFormProps) {
         {/* Authorization Declaration */}
         <div className="rounded-lg border border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-900/20 px-4 py-3">
           <p className="text-sm font-medium text-brand-800 dark:text-brand-300">
-            You are submitting this request to obtain authorization before relying on AI output in a business workflow.
+            You are submitting an AI authorization request. AI-generated output cannot be relied upon in any business workflow until a human reviewer explicitly authorizes reliance through this governance process.
           </p>
         </div>
 
@@ -73,6 +74,12 @@ export function RecordForm({ record }: RecordFormProps) {
             {error}
           </div>
         )}
+
+        {/* Section 1: AI Usage Details */}
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Section 1 — AI Usage Details</p>
+          <div className="mt-1 h-px bg-border-subtle" />
+        </div>
 
         <Input
           id="aiToolUsed"
@@ -116,6 +123,29 @@ export function RecordForm({ record }: RecordFormProps) {
           otherDefaultValue={record?.aiUsageTypeOther ?? undefined}
         />
 
+        {/* Section 2: AI Use Justification */}
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Section 2 — AI Use Justification</p>
+          <div className="mt-1 h-px bg-border-subtle" />
+        </div>
+
+        <RadioGroup
+          name="aiUseJustification"
+          label="Why is AI appropriate for this task?"
+          description="Select the primary justification for using AI in this workflow."
+          options={[...AI_USE_JUSTIFICATION_OPTIONS]}
+          defaultValue={record?.aiUseJustification?.[0] ?? undefined}
+          showOther
+          otherName="aiUseJustificationOther"
+          otherDefaultValue={record?.aiUseJustificationOther ?? undefined}
+        />
+
+        {/* Section 3: Human Oversight */}
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Section 3 — Human Oversight</p>
+          <div className="mt-1 h-px bg-border-subtle" />
+        </div>
+
         <CheckboxGroup
           name="humanReviewPlan"
           label="How will you review AI output before use?"
@@ -127,17 +157,6 @@ export function RecordForm({ record }: RecordFormProps) {
           otherDefaultValue={record?.humanReviewPlanOther ?? undefined}
         />
 
-        <CheckboxGroup
-          name="aiUseJustification"
-          label="Why is AI appropriate for this task?"
-          description="Select all that apply. This captures the justification for using AI in this workflow."
-          options={[...AI_USE_JUSTIFICATION_OPTIONS]}
-          defaultValues={record?.aiUseJustification ?? []}
-          showOther
-          otherName="aiUseJustificationOther"
-          otherDefaultValue={record?.aiUseJustificationOther ?? undefined}
-        />
-
         <div className="flex items-center gap-3 border-t border-border-subtle pt-6">
           <Button type="submit" disabled={loading}>
             {loading
@@ -146,7 +165,7 @@ export function RecordForm({ record }: RecordFormProps) {
                 : "Creating..."
               : isEdit
                 ? "Save Changes"
-                : "Create Permission Slip"}
+                : "Submit Authorization Request"}
           </Button>
           <Button
             type="button"

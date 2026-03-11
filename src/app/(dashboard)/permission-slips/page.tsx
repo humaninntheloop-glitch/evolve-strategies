@@ -57,14 +57,14 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
           <h1 className="text-2xl font-bold tracking-tight text-on-surface">Permission Slips</h1>
           <p className="mt-1 text-sm text-on-surface-secondary">
             {user.role === "EMPLOYEE"
-              ? "Your AI usage permission slips"
+              ? "Your permission slips"
               : "All organization permission slips"}
           </p>
         </div>
         <Link href="/permission-slips/new">
           <Button>
             <Plus className="h-4 w-4" />
-            New Permission Slip
+            New Request
           </Button>
         </Link>
       </div>
@@ -86,13 +86,13 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
           <p className="mt-1 text-sm text-on-surface-quaternary">
             {statusParam || creatorParam || fromParam || toParam
               ? "Try adjusting your filters."
-              : "Create your first AI permission slip to get started."}
+              : "Submit your first permission slip to get started."}
           </p>
           {!statusParam && !creatorParam && !fromParam && !toParam && (
             <Link href="/permission-slips/new" className="mt-5">
               <Button size="sm">
                 <Plus className="h-4 w-4" />
-                Create Permission Slip
+                New Permission Slip
               </Button>
             </Link>
           )}

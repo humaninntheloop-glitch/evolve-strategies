@@ -17,7 +17,7 @@ export function ReviewQueueTable({ records }: ReviewQueueTableProps) {
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-inset">
           <Tray className="h-6 w-6 text-on-surface-quaternary" />
         </div>
-        <p className="mt-3 text-sm font-medium text-on-surface-secondary">No permission slips pending review</p>
+        <p className="mt-3 text-sm font-medium text-on-surface-secondary">No authorization requests pending review</p>
         <p className="mt-1 text-xs text-on-surface-quaternary">All caught up!</p>
       </div>
     );

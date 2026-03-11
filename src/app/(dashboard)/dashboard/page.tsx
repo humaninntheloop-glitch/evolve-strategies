@@ -18,6 +18,11 @@ import {
   ArrowRight,
   ClipboardText,
   TrendUp,
+  PaperPlaneTilt,
+  ShieldWarning,
+  UsersThree,
+  SealCheck,
+  LockLaminated,
 } from "@phosphor-icons/react/ssr";
 
 export default async function DashboardPage() {
@@ -60,7 +65,7 @@ export default async function DashboardPage() {
           <p className="mt-1 text-sm text-on-surface-secondary">
             {isAdminOrReviewer
               ? "Here\u2019s what\u2019s happening across your organization."
-              : "Here\u2019s an overview of your AI permission slips."}
+              : "Here\u2019s an overview of your AI authorization requests."}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -75,11 +80,40 @@ export default async function DashboardPage() {
           <Link href="/permission-slips/new">
             <Button size="sm">
               <Plus className="h-4 w-4" />
-              New Permission Slip
+              New Request
             </Button>
           </Link>
         </div>
       </div>
+
+      {/* Workflow Flow — Employee only */}
+      {!isAdminOrReviewer && (
+        <Card>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary mb-4">
+            AI Governance Workflow
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            {[
+              { label: "AI Request", icon: FileText },
+              { label: "Submit Request", icon: PaperPlaneTilt },
+              { label: "Risk Classification", icon: ShieldWarning },
+              { label: "Human Review", icon: UsersThree },
+              { label: "Authorization Decision", icon: SealCheck },
+              { label: "Immutable Audit Record", icon: LockLaminated },
+            ].map((step, i, arr) => (
+              <div key={step.label} className="flex items-center gap-2">
+                <div className="flex items-center gap-2 rounded-lg border border-border-default bg-surface-inset px-3 py-2">
+                  <step.icon className="h-4 w-4 text-on-surface-tertiary" weight="duotone" />
+                  <span className="text-sm font-medium text-on-surface whitespace-nowrap">{step.label}</span>
+                </div>
+                {i < arr.length - 1 && (
+                  <ArrowRight className="h-3.5 w-3.5 shrink-0 text-on-surface-quaternary" />
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Primary Stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -103,7 +137,7 @@ export default async function DashboardPage() {
         {/* Recent Activity */}
         <div className="lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-on-surface">Recent Permission Slips</h2>
+            <h2 className="text-sm font-semibold text-on-surface">Recent Authorization Requests</h2>
             <Link
               href="/permission-slips"
               className="inline-flex items-center gap-1 text-[13px] font-medium text-on-surface-tertiary transition-colors hover:text-on-surface"
@@ -117,14 +151,14 @@ export default async function DashboardPage() {
             <Card>
               <div className="flex flex-col items-center py-8 text-center">
                 <FileText className="h-6 w-6 text-on-surface-quaternary" />
-                <p className="mt-3 text-sm font-medium text-on-surface-secondary">No permission slips yet</p>
+                <p className="mt-3 text-sm font-medium text-on-surface-secondary">No authorization requests yet</p>
                 <p className="mt-1 text-xs text-on-surface-quaternary">
-                  Create your first AI permission slip to get started.
+                  Submit your first AI authorization request to get started.
                 </p>
                 <Link href="/permission-slips/new" className="mt-4">
                   <Button size="sm">
                     <Plus className="h-4 w-4" />
-                    Create Permission Slip
+                    New Authorization Request
                   </Button>
                 </Link>
               </div>
@@ -201,8 +235,8 @@ export default async function DashboardPage() {
                 <Card className="flex items-center gap-3 py-3 px-4 transition-all duration-150 hover:shadow-md hover:border-border-strong">
                   <Plus className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-on-surface">New Permission Slip</p>
-                    <p className="text-xs text-on-surface-quaternary">Document AI usage</p>
+                    <p className="text-sm font-medium text-on-surface">New Authorization Request</p>
+                    <p className="text-xs text-on-surface-quaternary">Submit AI authorization request</p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-on-surface-quaternary transition-transform group-hover:translate-x-0.5" />
                 </Card>

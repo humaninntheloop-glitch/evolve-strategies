@@ -262,13 +262,47 @@ export async function approveRecord(
     validationReferenceOther?: string;
   }
 ): Promise<ActionResult> {
-  return performTransition(recordId, "APPROVED", {
+  const result = await performTransition(recordId, "APPROVED", {
     reviewComment: options.comment,
     decisionRationale: options.decisionRationale,
     decisionRationaleOther: options.decisionRationaleOther,
     validationReference: options.validationReference,
     validationReferenceOther: options.validationReferenceOther,
   });
+
+  if (!result.success) return result;
+
+  // Auto-record after approval (no separate Finalize step)
+  try {
+    const user = await requireAuth();
+
+    await prisma.record.update({
+      where: { id: recordId },
+      data: {
+        status: "RECORDED",
+        recordedAt: new Date(),
+      },
+    });
+
+    await createAuditLog({
+      organizationId: user.organizationId,
+      recordId,
+      actionType: "STATUS_CHANGE",
+      actorId: user.id,
+      previousState: "APPROVED",
+      newState: "RECORDED",
+      metadata: { reason: "Recorded after reviewer approval" },
+    });
+  } catch (error) {
+    return { success: false, error: handleActionError(error) };
+  }
+
+  revalidatePath(`/permission-slips/${recordId}`);
+  revalidatePath("/permission-slips");
+  revalidatePath("/review");
+  revalidatePath("/dashboard");
+
+  return { success: true, data: undefined };
 }
 
 export async function rejectRecord(
@@ -286,10 +320,3 @@ export async function rejectRecord(
   });
 }
 
-export async function finalizeRecord(recordId: string): Promise<ActionResult> {
-  return performTransition(recordId, "RECORDED");
-}
-
-export async function returnToDraft(recordId: string): Promise<ActionResult> {
-  return performTransition(recordId, "DRAFT");
-}

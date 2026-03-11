@@ -14,7 +14,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Human In The Loop",
-  description: "Document AI usage in regulated workflows",
+  description: "AI governance platform for regulated workflows",
 };
 
 export default function RootLayout({

@@ -51,8 +51,8 @@ function getLabel(entry: AuditLogEntry): string {
   if (entry.actionType === "RECORD_UPDATED") return "Permission slip updated";
   if (entry.actionType === "STATUS_CHANGE") {
     const metadata = entry.metadata as Record<string, unknown> | null;
-    if (metadata?.autoApproved) return "Auto-approved (Low risk)";
-    if (metadata?.autoRecorded) return "Auto-recorded (Low risk)";
+    if (metadata?.autoApproved) return "Approved";
+    if (metadata?.autoRecorded) return "Recorded";
     return `${entry.previousState} → ${entry.newState}`;
   }
   return entry.actionType;

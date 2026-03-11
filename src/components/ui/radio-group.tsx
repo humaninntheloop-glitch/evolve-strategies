@@ -20,6 +20,8 @@ export interface RadioGroupProps {
   defaultValue?: string;
   onChange?: (value: string) => void;
   showOther?: boolean;
+  otherName?: string;
+  otherDefaultValue?: string;
   otherValue?: string;
   onOtherChange?: (value: string) => void;
   className?: string;
@@ -36,6 +38,8 @@ export function RadioGroup({
   defaultValue,
   onChange,
   showOther = false,
+  otherName,
+  otherDefaultValue,
   otherValue = "",
   onOtherChange,
   className,
@@ -103,13 +107,23 @@ export function RadioGroup({
                 Other
               </span>
               {selected === "OTHER" && (
-                <textarea
-                  placeholder="Please specify..."
-                  rows={2}
-                  value={otherValue}
-                  onChange={(e) => onOtherChange?.(e.target.value)}
-                  className="mt-2 block w-full rounded-md border border-input-border bg-surface px-3 py-2 text-sm text-on-surface shadow-xs transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-zinc-400/20 focus:border-input-border-focus placeholder:text-on-surface-quaternary"
-                />
+                onOtherChange ? (
+                  <textarea
+                    placeholder="Please specify..."
+                    rows={2}
+                    value={otherValue}
+                    onChange={(e) => onOtherChange(e.target.value)}
+                    className="mt-2 block w-full rounded-md border border-input-border bg-surface px-3 py-2 text-sm text-on-surface shadow-xs transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-zinc-400/20 focus:border-input-border-focus placeholder:text-on-surface-quaternary"
+                  />
+                ) : otherName ? (
+                  <textarea
+                    name={otherName}
+                    defaultValue={otherDefaultValue}
+                    placeholder="Please specify..."
+                    rows={2}
+                    className="mt-2 block w-full rounded-md border border-input-border bg-surface px-3 py-2 text-sm text-on-surface shadow-xs transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-zinc-400/20 focus:border-input-border-focus placeholder:text-on-surface-quaternary"
+                  />
+                ) : null
               )}
             </div>
           </label>

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { LifecycleBadge } from "./lifecycle-badge";
 import { RiskBadge } from "./risk-badge";
 import { RecordTimeline } from "./record-timeline";
-import { formatDate } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
 import {
   AI_OUTPUT_IMPACT_LABELS,
   AI_USAGE_TYPE_LABELS,
@@ -24,14 +24,13 @@ import {
   submitRecord,
   approveRecord,
   rejectRecord,
-  finalizeRecord,
 } from "@/lib/actions/lifecycle-actions";
 import { deleteRecord } from "@/lib/actions/record-actions";
 import { Dialog, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { CheckboxGroup } from "@/components/ui/checkbox-group";
-import { PencilSimple, Trash, PaperPlaneTilt, CheckCircle, XCircle, Lock, DownloadSimple, CircleNotch, Sparkle, ShieldCheck, ShieldSlash } from "@phosphor-icons/react";
+import { PencilSimple, Trash, PaperPlaneTilt, CheckCircle, XCircle, DownloadSimple, CircleNotch, Sparkle, ShieldCheck, ShieldSlash } from "@phosphor-icons/react";
 import type { RecordWithRelations, AuditLogEntry, RecordStatus, AuthUser } from "@/types";
 import { getAvailableTransitions } from "@/lib/lifecycle/state-machine";
 
@@ -162,18 +161,6 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             Reject AI Reliance
           </Button>
         );
-      case "RECORDED":
-        return (
-          <Button
-            key="finalize"
-            size="sm"
-            disabled={loading}
-            onClick={() => handleAction(() => finalizeRecord(record.id))}
-          >
-            <Lock className="h-3.5 w-3.5" />
-            Finalize
-          </Button>
-        );
       default:
         return null;
     }
@@ -194,7 +181,6 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
           <div className="flex items-center gap-3">
             <h1 className="text-xl font-bold tracking-tight text-on-surface">{record.aiToolUsed}</h1>
             <LifecycleBadge status={record.status} />
-            {record.riskLevel && <RiskBadge level={record.riskLevel} />}
           </div>
           <p className="mt-1.5 text-sm text-on-surface-secondary">
             Created by {record.creator.fullName} on {formatDate(record.createdAt)}
@@ -259,9 +245,119 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
         </div>
       </div>
 
+      {/* Risk Level Banner */}
+      {record.riskLevel && (
+        <Card className={cn(
+          "border-l-4",
+          record.riskLevel === "LOW" && "border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20",
+          record.riskLevel === "MODERATE" && "border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20",
+          record.riskLevel === "HIGH" && "border-l-red-500 bg-red-50/50 dark:bg-red-950/20",
+        )}>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Risk Level</p>
+          <p className={cn(
+            "mt-1 text-lg font-bold",
+            record.riskLevel === "LOW" && "text-emerald-700 dark:text-emerald-400",
+            record.riskLevel === "MODERATE" && "text-amber-700 dark:text-amber-400",
+            record.riskLevel === "HIGH" && "text-red-700 dark:text-red-400",
+          )}>
+            {record.riskLevel === "LOW" ? "Low Risk" : record.riskLevel === "MODERATE" ? "Moderate Risk" : "High Risk"}
+          </p>
+          {record.riskJustification && (
+            <p className="mt-1.5 text-sm text-on-surface-secondary leading-relaxed">{record.riskJustification}</p>
+          )}
+        </Card>
+      )}
+
+      {/* AI Summary */}
+      {record.aiSummary && (
+        <Card>
+          <div className="flex items-center gap-1.5 mb-2">
+            <Sparkle className="h-3.5 w-3.5 text-brand-500" weight="fill" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">
+              AI Summary
+            </span>
+          </div>
+          <p className="text-sm text-on-surface-secondary leading-relaxed">
+            {record.aiSummary}
+          </p>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Main content */}
         <div className="space-y-6 lg:col-span-2">
+          {/* Authorization Source of Truth */}
+          {(record.status === "APPROVED" || record.status === "RECORDED") && (
+            <Card>
+              {/* Banner */}
+              <div className="flex items-center gap-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 px-4 py-3">
+                <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" weight="fill" />
+                <span className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+                  Authorized for AI Reliance
+                </span>
+              </div>
+
+              <div className="mt-5 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Authorized By</p>
+                    <p className="mt-1.5 text-sm font-medium text-on-surface">
+                      {record.reviewer?.fullName ?? "Auto-authorized (Low Risk)"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Authorization Date</p>
+                    <p className="mt-1.5 text-sm font-medium text-on-surface">
+                      {formatDate(record.approvedAt)}
+                    </p>
+                  </div>
+                </div>
+
+                {record.reviewerDecisionRationale ? (
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Decision Rationale</p>
+                    <p className="mt-1.5 text-sm text-on-surface-secondary">
+                      {REVIEWER_DECISION_RATIONALE_LABELS[record.reviewerDecisionRationale] ?? record.reviewerDecisionRationale}
+                    </p>
+                    {record.reviewerDecisionRationaleOther && (
+                      <p className="mt-1 text-sm text-on-surface-tertiary italic">
+                        {record.reviewerDecisionRationaleOther}
+                      </p>
+                    )}
+                  </div>
+                ) : !record.reviewer && (
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Decision Rationale</p>
+                    <p className="mt-1.5 text-sm text-on-surface-tertiary italic">
+                      Auto-authorized — Low risk classification
+                    </p>
+                  </div>
+                )}
+
+                {record.reviewerValidationReference.length > 0 && (
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Validation Reference</p>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {record.reviewerValidationReference.map((ref) => (
+                        <span
+                          key={ref}
+                          className="inline-flex items-center rounded-md bg-surface-inset px-2 py-1 text-xs font-medium text-on-surface-secondary"
+                        >
+                          {REVIEWER_VALIDATION_REFERENCE_LABELS[ref] ?? ref}
+                        </span>
+                      ))}
+                    </div>
+                    {record.reviewerValidationReferenceOther && (
+                      <p className="mt-1.5 text-sm text-on-surface-tertiary italic">
+                        Other: {record.reviewerValidationReferenceOther}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
           <Card>
             <CardTitle>Permission Slip Details</CardTitle>
             <div className="mt-5 space-y-5">
@@ -387,32 +483,6 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
                 </>
               )}
 
-              {/* AI Summary */}
-              {record.aiSummary && (
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Summary</p>
-                  <div className="mt-1.5 rounded-lg border border-brand-200 dark:border-brand-800 bg-brand-50/50 dark:bg-brand-950/20 px-4 py-3">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Sparkle className="h-3.5 w-3.5 text-brand-500" weight="fill" />
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">
-                        Generated by AI
-                      </span>
-                    </div>
-                    <p className="text-sm text-on-surface-secondary leading-relaxed">
-                      {record.aiSummary}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {record.riskJustification && (
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Risk Assessment</p>
-                  <div className="mt-1.5 rounded-lg border border-border-subtle bg-surface-inset px-3 py-2.5">
-                    <p className="text-sm text-on-surface-secondary leading-relaxed">{record.riskJustification}</p>
-                  </div>
-                </div>
-              )}
               {record.reviewComment && (
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Review Comment</p>
@@ -430,78 +500,6 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
               )}
             </div>
           </Card>
-
-          {/* Authorization Source of Truth */}
-          {(record.status === "APPROVED" || record.status === "RECORDED") && (
-            <Card>
-              {/* Banner */}
-              <div className="flex items-center gap-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 px-4 py-3">
-                <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" weight="fill" />
-                <span className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
-                  Authorized for AI Reliance
-                </span>
-              </div>
-
-              <div className="mt-5 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Authorized By</p>
-                    <p className="mt-1.5 text-sm font-medium text-on-surface">
-                      {record.reviewer?.fullName ?? "Auto-authorized (Low Risk)"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Authorization Date</p>
-                    <p className="mt-1.5 text-sm font-medium text-on-surface">
-                      {formatDate(record.approvedAt)}
-                    </p>
-                  </div>
-                </div>
-
-                {record.reviewerDecisionRationale ? (
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Decision Rationale</p>
-                    <p className="mt-1.5 text-sm text-on-surface-secondary">
-                      {REVIEWER_DECISION_RATIONALE_LABELS[record.reviewerDecisionRationale] ?? record.reviewerDecisionRationale}
-                    </p>
-                    {record.reviewerDecisionRationaleOther && (
-                      <p className="mt-1 text-sm text-on-surface-tertiary italic">
-                        {record.reviewerDecisionRationaleOther}
-                      </p>
-                    )}
-                  </div>
-                ) : !record.reviewer && (
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Decision Rationale</p>
-                    <p className="mt-1.5 text-sm text-on-surface-tertiary italic">
-                      Auto-authorized — Low risk classification
-                    </p>
-                  </div>
-                )}
-
-                {record.reviewerValidationReference.length > 0 && (
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Validation Reference</p>
-                    <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      {record.reviewerValidationReference.map((ref) => (
-                        <span
-                          key={ref}
-                          className="inline-flex items-center rounded-md bg-surface-inset px-2 py-1 text-xs font-medium text-on-surface-secondary"
-                        >
-                          {REVIEWER_VALIDATION_REFERENCE_LABELS[ref] ?? ref}
-                        </span>
-                      ))}
-                    </div>
-                    {record.reviewerValidationReferenceOther && (
-                      <p className="mt-1.5 text-sm text-on-surface-tertiary italic">
-                        Other: {record.reviewerValidationReferenceOther}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </Card>
-          )}
 
           {/* Rejected banner */}
           {record.status === "REJECTED" && record.reviewerDecisionRationale && (
