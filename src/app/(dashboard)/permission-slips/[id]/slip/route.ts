@@ -86,7 +86,7 @@ async function generateSlipPdf(
   const logoImg = await doc.embedPng(logoBytes);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const qrBuffer = await QRCode.toBuffer(`${siteUrl}/records/${record.id}`, {
+  const qrBuffer = await QRCode.toBuffer(`${siteUrl}/permission-slips/${record.id}`, {
     width: 200,
     margin: 0,
     color: { dark: "#0f1729", light: "#ffffff" },

@@ -23,7 +23,7 @@ interface RecordCardProps {
 
 export function RecordCard({ record }: RecordCardProps) {
   return (
-    <Link href={`/records/${record.id}`} className="group block">
+    <Link href={`/permission-slips/${record.id}`} className="group block">
       <Card className="relative overflow-hidden transition-all duration-200 hover:shadow-md hover:border-border-strong">
         {/* Status accent bar */}
         <div className={cn("absolute inset-y-0 left-0 w-[3px]", statusBarColor[record.status])} />

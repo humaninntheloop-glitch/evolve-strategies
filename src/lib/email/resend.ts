@@ -22,7 +22,7 @@ export async function sendInviteEmail({
 
   try {
     const { error } = await resend.emails.send({
-      from: `${organizationName} <onboarding@resend.dev>`,
+      from: `${organizationName} <semrebayrak@gmail.com>`,
       to,
       subject: `You've been invited to ${organizationName}`,
       html: buildInviteHtml({ fullName, organizationName, setupLink }),

@@ -15,7 +15,7 @@ export default async function EditRecordPage({ params }: EditRecordPageProps) {
   if (!record) notFound();
 
   if (record.status !== "DRAFT") {
-    redirect(`/records/${id}`);
+    redirect(`/permission-slips/${id}`);
   }
 
   if (record.creatorId !== user.id && user.role !== "ADMIN") {
@@ -25,9 +25,9 @@ export default async function EditRecordPage({ params }: EditRecordPageProps) {
   return (
     <div className="animate-fade-in-up">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-on-surface">Edit Record</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-on-surface">Edit Permission Slip</h1>
         <p className="mt-1 text-sm text-on-surface-secondary">
-          Update your draft record before submitting for review.
+          Update your draft permission slip before submitting for review.
         </p>
       </div>
       <div className="max-w-2xl">

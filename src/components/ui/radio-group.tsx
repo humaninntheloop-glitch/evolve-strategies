@@ -13,6 +13,7 @@ export interface RadioGroupProps {
   label?: string;
   description?: string;
   error?: string;
+  required?: boolean;
   options: RadioGroupOption[];
   name?: string;
   value?: string;
@@ -28,6 +29,7 @@ export function RadioGroup({
   label,
   description,
   error,
+  required,
   options,
   name,
   value,
@@ -51,6 +53,7 @@ export function RadioGroup({
       {label && (
         <label className="block text-sm font-medium text-on-surface mb-1">
           {label}
+          {required && <span className="ml-1 text-xs font-normal text-on-surface-tertiary">(required)</span>}
         </label>
       )}
       {description && (

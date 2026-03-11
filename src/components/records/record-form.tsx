@@ -53,7 +53,7 @@ export function RecordForm({ record }: RecordFormProps) {
       setError(result.error);
       setLoading(false);
     } else if (isEdit) {
-      router.push(`/records/${record.id}`);
+      router.push(`/permission-slips/${record.id}`);
     }
   }
 
@@ -98,7 +98,7 @@ export function RecordForm({ record }: RecordFormProps) {
           id="dataSensitivity"
           name="dataSensitivity"
           label="Does this AI usage involve sensitive or regulated data?"
-          description="Sensitive or regulated data includes personal data, financial information, health data, confidential client data, or regulated records."
+          description="Sensitive or regulated data includes personal data, financial information, health data, confidential client data, or regulated data."
           options={booleanOptions}
           placeholder="Select an option"
           required

@@ -28,7 +28,7 @@ async function performTransition(
   });
 
   if (!record) {
-    return { success: false, error: "Record not found" };
+    return { success: false, error: "Permission slip not found" };
   }
 
   const result = validateTransition({
@@ -120,8 +120,8 @@ async function performTransition(
     return { success: false, error: handleActionError(error) };
   }
 
-  revalidatePath(`/records/${recordId}`);
-  revalidatePath("/records");
+  revalidatePath(`/permission-slips/${recordId}`);
+  revalidatePath("/permission-slips");
   revalidatePath("/review");
   revalidatePath("/dashboard");
 
@@ -137,7 +137,7 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
   });
 
   if (!record) {
-    return { success: false, error: "Record not found" };
+    return { success: false, error: "Permission slip not found" };
   }
 
   const transitionResult = validateTransition({
@@ -244,8 +244,8 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
     return { success: false, error: handleActionError(error) };
   }
 
-  revalidatePath(`/records/${recordId}`);
-  revalidatePath("/records");
+  revalidatePath(`/permission-slips/${recordId}`);
+  revalidatePath("/permission-slips");
   revalidatePath("/review");
   revalidatePath("/dashboard");
 
