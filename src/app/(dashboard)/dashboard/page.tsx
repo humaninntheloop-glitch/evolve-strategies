@@ -80,7 +80,7 @@ export default async function DashboardPage() {
           <Link href="/permission-slips/new">
             <Button size="sm">
               <Plus className="h-4 w-4" />
-              New Request
+              Create AI Permission Slip
             </Button>
           </Link>
         </div>

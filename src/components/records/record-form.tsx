@@ -165,7 +165,7 @@ export function RecordForm({ record }: RecordFormProps) {
                 : "Creating..."
               : isEdit
                 ? "Save Changes"
-                : "Submit Authorization Request"}
+                : "Submit AI Authorization Request"}
           </Button>
           <Button
             type="button"
