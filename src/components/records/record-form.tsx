@@ -88,15 +88,15 @@ export function RecordForm({ record }: RecordFormProps) {
             defaultValue={record?.aiToolUsed}
           />
 
-          <Select
-            id="aiOutputImpact"
-            name="aiOutputImpact"
-            label="AI Output Description / Workflow Type"
-            description="This determines the risk level. External-facing or consequential outputs require reviewer authorization."
-            options={aiOutputImpactOptions}
-            placeholder="Select AI output impact"
-            required
-            defaultValue={record?.aiOutputImpact ?? undefined}
+          <CheckboxGroup
+            name="aiUsageType"
+            label="How is AI being used?"
+            description="Select all that apply. This helps categorize and track AI usage patterns across the organization."
+            options={[...AI_USAGE_TYPE_OPTIONS]}
+            defaultValues={record?.aiUsageType ?? []}
+            showOther
+            otherName="aiUsageTypeOther"
+            otherDefaultValue={record?.aiUsageTypeOther ?? undefined}
           />
 
           <RadioGroup
@@ -108,15 +108,15 @@ export function RecordForm({ record }: RecordFormProps) {
             defaultValue={record ? String(record.dataSensitivity) : undefined}
           />
 
-          <CheckboxGroup
-            name="aiUsageType"
-            label="How is AI being used?"
-            description="Select all that apply. This helps categorize and track AI usage patterns across the organization."
-            options={[...AI_USAGE_TYPE_OPTIONS]}
-            defaultValues={record?.aiUsageType ?? []}
-            showOther
-            otherName="aiUsageTypeOther"
-            otherDefaultValue={record?.aiUsageTypeOther ?? undefined}
+          <Select
+            id="aiOutputImpact"
+            name="aiOutputImpact"
+            label="AI Output Description / Workflow Type"
+            description="This determines the risk level. External-facing or consequential outputs require reviewer authorization."
+            options={aiOutputImpactOptions}
+            placeholder="Select AI output impact"
+            required
+            defaultValue={record?.aiOutputImpact ?? undefined}
           />
         </div>
 
