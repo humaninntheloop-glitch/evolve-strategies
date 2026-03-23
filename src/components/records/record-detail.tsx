@@ -253,7 +253,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
           record.riskLevel === "MODERATE" && "border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20",
           record.riskLevel === "HIGH" && "border-l-red-500 bg-red-50/50 dark:bg-red-950/20",
         )}>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Risk Level</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Risk Explanation</p>
           <p className={cn(
             "mt-1 text-lg font-bold",
             record.riskLevel === "LOW" && "text-emerald-700 dark:text-emerald-400",
@@ -359,7 +359,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
           )}
 
           <Card>
-            <CardTitle>Permission Slip Details</CardTitle>
+            <CardTitle>AI Permission Slip</CardTitle>
             <div className="mt-5 space-y-5">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Tool</p>
@@ -407,7 +407,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
 
                   {record.humanReviewPlan.length > 0 && (
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Human Review Plan</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Human Oversight Plan</p>
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {record.humanReviewPlan.map((plan) => (
                           <span
@@ -507,7 +507,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
               <div className="flex items-center gap-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3">
                 <ShieldSlash className="h-5 w-5 text-red-600 dark:text-red-400" weight="fill" />
                 <span className="text-sm font-semibold text-red-800 dark:text-red-300">
-                  AI Reliance Rejected
+                  AI Reliance Not Authorized
                 </span>
               </div>
               <div className="mt-5">
@@ -625,7 +625,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             }}
           >
             <CheckCircle className="h-3.5 w-3.5" />
-            Submit Authorization
+            Submit AI Authorization Request
           </Button>
         </div>
       </Dialog>
