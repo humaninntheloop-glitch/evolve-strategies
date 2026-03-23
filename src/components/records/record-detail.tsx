@@ -268,18 +268,23 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
         </Card>
       )}
 
-      {/* AI Summary */}
+      {/* AI Summary / Risk Explanation */}
       {record.aiSummary && (
         <Card>
-          <div className="flex items-center gap-1.5 mb-2">
+          <div className="flex items-center gap-1.5 mb-3">
             <Sparkle className="h-3.5 w-3.5 text-brand-500" weight="fill" />
             <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">
               Risk Explanation
             </span>
           </div>
-          <p className="text-sm text-on-surface-secondary leading-relaxed">
-            {record.aiSummary}
-          </p>
+          <ul className="space-y-2">
+            {record.aiSummary.split(/(?:\.\s+|\n+)/).filter((s: string) => s.trim()).map((point: string, i: number) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-on-surface-secondary leading-relaxed">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-on-surface-quaternary" />
+                {point.trim().replace(/\.$/, "")}
+              </li>
+            ))}
+          </ul>
         </Card>
       )}
 
@@ -428,7 +433,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
 
                   {record.aiUseJustification.length > 0 && (
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Use Justification</p>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-secondary">AI Use Justification</p>
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {record.aiUseJustification.map((j) => (
                           <span

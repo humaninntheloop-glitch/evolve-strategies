@@ -75,87 +75,82 @@ export function RecordForm({ record }: RecordFormProps) {
           </div>
         )}
 
-        {/* Section 1: AI Usage Details */}
-        <div>
+        {/* Section 1: AI Reliance Details */}
+        <div className="rounded-lg border border-border-default p-5 space-y-5">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Section 1 — AI Reliance Details</p>
-          <div className="mt-1 h-px bg-border-subtle" />
+
+          <Input
+            id="aiToolUsed"
+            name="aiToolUsed"
+            label="AI Tool Used"
+            placeholder="e.g., ChatGPT, GitHub Copilot, Claude..."
+            required
+            defaultValue={record?.aiToolUsed}
+          />
+
+          <Select
+            id="aiOutputImpact"
+            name="aiOutputImpact"
+            label="AI Output Description / Workflow Type"
+            description="This determines the risk level. External-facing or consequential outputs require reviewer authorization."
+            options={aiOutputImpactOptions}
+            placeholder="Select AI output impact"
+            required
+            defaultValue={record?.aiOutputImpact ?? undefined}
+          />
+
+          <RadioGroup
+            name="dataSensitivity"
+            label="Does this AI usage involve sensitive or regulated data?"
+            description="Sensitive or regulated data includes personal data, financial information, health data, confidential client data, or regulated data."
+            options={booleanOptions}
+            required
+            defaultValue={record ? String(record.dataSensitivity) : undefined}
+          />
+
+          <CheckboxGroup
+            name="aiUsageType"
+            label="How is AI being used?"
+            description="Select all that apply. This helps categorize and track AI usage patterns across the organization."
+            options={[...AI_USAGE_TYPE_OPTIONS]}
+            defaultValues={record?.aiUsageType ?? []}
+            showOther
+            otherName="aiUsageTypeOther"
+            otherDefaultValue={record?.aiUsageTypeOther ?? undefined}
+          />
         </div>
-
-        <Input
-          id="aiToolUsed"
-          name="aiToolUsed"
-          label="AI Tool Used"
-          placeholder="e.g., ChatGPT, GitHub Copilot, Claude..."
-          required
-          defaultValue={record?.aiToolUsed}
-        />
-
-        <Select
-          id="aiOutputImpact"
-          name="aiOutputImpact"
-          label="AI Output Description / Workflow Type"
-          description="This determines the risk level. External-facing or consequential outputs require reviewer authorization."
-          options={aiOutputImpactOptions}
-          placeholder="Select AI output impact"
-          required
-          defaultValue={record?.aiOutputImpact ?? undefined}
-        />
-
-        <Select
-          id="dataSensitivity"
-          name="dataSensitivity"
-          label="Does this AI usage involve sensitive or regulated data? (Yes/No radio)"
-          description="Sensitive or regulated data includes personal data, financial information, health data, confidential client data, or regulated data."
-          options={booleanOptions}
-          placeholder="Select an option"
-          required
-          defaultValue={record ? String(record.dataSensitivity) : undefined}
-        />
-
-        <CheckboxGroup
-          name="aiUsageType"
-          label="How is AI being used?"
-          description="Select all that apply. This helps categorize and track AI usage patterns across the organization."
-          options={[...AI_USAGE_TYPE_OPTIONS]}
-          defaultValues={record?.aiUsageType ?? []}
-          showOther
-          otherName="aiUsageTypeOther"
-          otherDefaultValue={record?.aiUsageTypeOther ?? undefined}
-        />
 
         {/* Section 2: AI Use Justification */}
-        <div>
+        <div className="rounded-lg border border-border-default p-5 space-y-5">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Section 2 — AI Use Justification</p>
-          <div className="mt-1 h-px bg-border-subtle" />
-        </div>
 
-        <RadioGroup
-          name="aiUseJustification"
-          label="Why is AI appropriate for this task?"
-          description="Select the primary justification for using AI in this workflow."
-          options={[...AI_USE_JUSTIFICATION_OPTIONS]}
-          defaultValue={record?.aiUseJustification?.[0] ?? undefined}
-          showOther
-          otherName="aiUseJustificationOther"
-          otherDefaultValue={record?.aiUseJustificationOther ?? undefined}
-        />
+          <RadioGroup
+            name="aiUseJustification"
+            label="Why is AI appropriate for this task?"
+            description="Select the primary justification for using AI in this workflow."
+            options={[...AI_USE_JUSTIFICATION_OPTIONS]}
+            defaultValue={record?.aiUseJustification?.[0] ?? undefined}
+            showOther
+            otherName="aiUseJustificationOther"
+            otherDefaultValue={record?.aiUseJustificationOther ?? undefined}
+          />
+        </div>
 
         {/* Section 3: Human Oversight */}
-        <div>
+        <div className="rounded-lg border border-border-default p-5 space-y-5">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Section 3 — Human Oversight</p>
-          <div className="mt-1 h-px bg-border-subtle" />
-        </div>
 
-        <CheckboxGroup
-          name="humanReviewPlan"
-          label="Human Oversight Plan"
-          description="Select all review methods you plan to apply. At least one human review step is required."
-          options={[...HUMAN_REVIEW_PLAN_OPTIONS]}
-          defaultValues={record?.humanReviewPlan ?? []}
-          showOther
-          otherName="humanReviewPlanOther"
-          otherDefaultValue={record?.humanReviewPlanOther ?? undefined}
-        />
+          <CheckboxGroup
+            name="humanReviewPlan"
+            label="Human Oversight Plan"
+            description="Select all review methods you plan to apply. At least one human review step is required."
+            options={[...HUMAN_REVIEW_PLAN_OPTIONS]}
+            defaultValues={record?.humanReviewPlan ?? []}
+            showOther
+            otherName="humanReviewPlanOther"
+            otherDefaultValue={record?.humanReviewPlanOther ?? undefined}
+          />
+        </div>
 
         <div className="flex items-center gap-3 border-t border-border-subtle pt-6">
           <Button type="submit" disabled={loading}>
