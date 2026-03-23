@@ -274,7 +274,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
           <div className="flex items-center gap-1.5 mb-2">
             <Sparkle className="h-3.5 w-3.5 text-brand-500" weight="fill" />
             <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">
-              AI Summary
+              Risk Explanation
             </span>
           </div>
           <p className="text-sm text-on-surface-secondary leading-relaxed">
@@ -293,7 +293,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
               <div className="flex items-center gap-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 px-4 py-3">
                 <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" weight="fill" />
                 <span className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
-                  Authorized for AI Reliance
+                  Keep
                 </span>
               </div>
 

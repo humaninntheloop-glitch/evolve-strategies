@@ -56,7 +56,7 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
                   Transition
                 </th>
                 <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">
-                  Comment
+                  Reviewer Rationale / Note
                 </th>
                 <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">
                   Slip
@@ -70,21 +70,33 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
                     {formatDate(log.timestamp)}
                   </td>
                   <td className="px-4 py-3.5">
-                    <Badge variant="gray">{log.actionType}</Badge>
+                    <Badge variant="gray">{log.actionType === "STATUS_CHANGE" ? "AUTHORIZATION_EVENT" : log.actionType}</Badge>
                   </td>
                   <td className="px-4 py-3.5 text-sm text-on-surface-secondary">
                     {log.actor.fullName}
                   </td>
                   <td className="px-4 py-3.5 text-sm text-on-surface-secondary">
-                    {log.previousState && log.newState ? (
-                      <span>
-                        <span className="text-on-surface-quaternary">{log.previousState}</span>
-                        {" → "}
-                        <span className="font-medium text-on-surface">{log.newState}</span>
-                      </span>
-                    ) : (
-                      log.newState ?? <span className="text-on-surface-quaternary">&mdash;</span>
-                    )}
+                    {(() => {
+                      const stateLabels: Record<string, string> = {
+                        DRAFT: "Draft",
+                        SUBMITTED: "Submitted",
+                        APPROVED: "Authorized",
+                        REJECTED: "Rejected",
+                        RECORDED: "Authorized for AI Reliance",
+                      };
+                      if (log.previousState && log.newState) {
+                        return (
+                          <span>
+                            <span className="text-on-surface-quaternary">{stateLabels[log.previousState] ?? log.previousState}</span>
+                            {" → "}
+                            <span className="font-medium text-on-surface">{stateLabels[log.newState] ?? log.newState}</span>
+                          </span>
+                        );
+                      }
+                      return log.newState
+                        ? (stateLabels[log.newState] ?? log.newState)
+                        : <span className="text-on-surface-quaternary">&mdash;</span>;
+                    })()}
                   </td>
                   <td className="px-4 py-3.5 max-w-[240px]">
                     {(log.metadata as Record<string, unknown>)?.reviewComment ? (

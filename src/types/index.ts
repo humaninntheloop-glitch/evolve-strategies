@@ -89,7 +89,7 @@ export const STATUS_LABELS: Record<RecordStatus, string> = {
   SUBMITTED: "Submitted",
   APPROVED: "Approved",
   REJECTED: "Rejected",
-  RECORDED: "Recorded",
+  RECORDED: "Authorized for AI Reliance",
 };
 
 export const RISK_LABELS: Record<RiskLevel, string> = {

@@ -137,7 +137,7 @@ export default async function DashboardPage() {
         {/* Recent Activity */}
         <div className="lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-on-surface">Recent Authorization Requests</h2>
+            <h2 className="text-sm font-semibold text-on-surface">Recent AI Permission Slips</h2>
             <Link
               href="/permission-slips"
               className="inline-flex items-center gap-1 text-[13px] font-medium text-on-surface-tertiary transition-colors hover:text-on-surface"
@@ -236,7 +236,7 @@ export default async function DashboardPage() {
                   <Plus className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-on-surface">New Authorization Request</p>
-                    <p className="text-xs text-on-surface-quaternary">Submit AI authorization request</p>
+                    <p className="text-xs text-on-surface-quaternary">Create AI Permission Slip</p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-on-surface-quaternary transition-transform group-hover:translate-x-0.5" />
                 </Card>
