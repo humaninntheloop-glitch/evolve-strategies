@@ -325,6 +325,55 @@ body {
 .delay-500 { animation-delay: 500ms; }
 
 /* ==========================================
+   Landing Page Utilities
+   ========================================== */
+
+/* Mono display font for landing headings/labels */
+.font-mono-display {
+  font-family: var(--font-mono);
+}
+
+/* Responsive hero/section type sizes */
+.text-clamp-hero {
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  line-height: 1.1;
+}
+
+.text-clamp-section {
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  line-height: 1.15;
+}
+
+/* Signal glow button effect */
+.signal-glow {
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1), 0 0 40px rgba(255, 255, 255, 0.05);
+  transition: box-shadow 0.3s ease;
+}
+.signal-glow:hover {
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.15), 0 0 60px rgba(255, 255, 255, 0.08);
+}
+
+/* Etched border card */
+.etched-border {
+  border: 1px solid var(--border-default);
+  background: var(--surface);
+}
+
+/* Live feed scroll animation */
+@keyframes feed-scroll {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+.landing-feed-scroll {
+  animation: feed-scroll 30s linear infinite;
+}
+
+.landing-feed-scroll:hover {
+  animation-play-state: paused;
+}
+
+/* ==========================================
    Reduced Motion
    ========================================== */
 @media (prefers-reduced-motion: reduce) {
