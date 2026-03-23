@@ -82,7 +82,7 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
                         SUBMITTED: "Submitted",
                         APPROVED: "Authorized",
                         REJECTED: "Rejected",
-                        RECORDED: "Authorized for AI Reliance",
+                        RECORDED: "Recorded",
                       };
                       if (log.previousState && log.newState) {
                         return (

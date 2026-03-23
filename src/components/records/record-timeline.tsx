@@ -51,7 +51,7 @@ const STATE_DISPLAY_LABELS: Record<string, string> = {
   SUBMITTED: "Submitted",
   APPROVED: "Authorized",
   REJECTED: "Rejected",
-  RECORDED: "Authorized for AI Reliance",
+  RECORDED: "Recorded",
 };
 
 function getLabel(entry: AuditLogEntry): string {
@@ -60,7 +60,7 @@ function getLabel(entry: AuditLogEntry): string {
   if (entry.actionType === "STATUS_CHANGE") {
     const metadata = entry.metadata as Record<string, unknown> | null;
     if (metadata?.autoApproved) return "Authorized";
-    if (metadata?.autoRecorded) return "Authorized for AI Reliance";
+    if (metadata?.autoRecorded) return "Recorded";
     const from = STATE_DISPLAY_LABELS[entry.previousState ?? ""] ?? entry.previousState;
     const to = STATE_DISPLAY_LABELS[entry.newState ?? ""] ?? entry.newState;
     return `${from} → ${to}`;

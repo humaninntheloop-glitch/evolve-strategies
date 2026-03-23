@@ -266,7 +266,7 @@ async function generateSlipPdf(
         : record.riskLevel === "HIGH"
           ? C.riskHigh
           : C.medium;
-    drawColAt(M + col0W + col1W, col2W, "Risk Level", riskText, 9, riskColor);
+    drawColAt(M + col0W + col1W, col2W, "Risk Explanation", riskText, 9, riskColor);
 
     // Column dividers
     const dividers = [M + col0W, M + col0W + col1W];
@@ -303,7 +303,7 @@ async function generateSlipPdf(
     // Human Review Plan
     if (record.humanReviewPlan.length > 0) {
       ensureSpace(60);
-      label("Human Review Plan", M, y);
+      label("Human Oversight Plan", M, y);
       y -= 16;
       const planText = record.humanReviewPlan
         .map((p: string) => HUMAN_REVIEW_PLAN_LABELS[p] ?? p)
@@ -373,7 +373,7 @@ async function generateSlipPdf(
         : record.riskLevel === "HIGH"
           ? C.riskHigh
           : C.medium;
-    drawCol(3, "Risk Level", riskText, riskColor);
+    drawCol(3, "Risk Explanation", riskText, riskColor);
 
     for (let i = 1; i < 4; i++) {
       const dx = M + colW * i;
@@ -462,7 +462,7 @@ async function generateSlipPdf(
 
   if (record.reviewComment) {
     ensureSpace(80);
-    label("Review Comment", M, y);
+    label("Reviewer Rationale / Note", M, y);
     y -= 16;
 
     const commentLines = wrap(`"${record.reviewComment}"`, regular, 9.5, W - 24);

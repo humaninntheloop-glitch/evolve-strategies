@@ -29,10 +29,10 @@ Record details:
 - AI Tool: ${input.aiToolUsed}
 - AI Output Impact: ${input.aiOutputImpact}
 - AI Usage Types: ${input.aiUsageType.join(", ")}
-- Human Review Plan: ${input.humanReviewPlan.join(", ")}
+- Human Oversight Plan: ${input.humanReviewPlan.join(", ")}
 - AI Use Justification: ${input.aiUseJustification.join(", ") || "Not specified"}
 - Involves Sensitive Data: ${input.dataSensitivity ? "Yes" : "No"}
-- Risk Level: ${input.riskLevel}
+- Risk Explanation: ${input.riskLevel}
 - Risk Justification: ${input.riskJustification}
 
 Write the summary now:`;
