@@ -46,14 +46,24 @@ function getColor(entry: AuditLogEntry): { icon: string; ring: string } {
   return { icon: "text-zinc-400 dark:text-zinc-500", ring: "ring-zinc-200 dark:ring-zinc-700" };
 }
 
+const STATE_DISPLAY_LABELS: Record<string, string> = {
+  DRAFT: "Draft",
+  SUBMITTED: "Submitted",
+  APPROVED: "Authorized",
+  REJECTED: "Rejected",
+  RECORDED: "Authorized for AI Reliance",
+};
+
 function getLabel(entry: AuditLogEntry): string {
   if (entry.actionType === "RECORD_CREATED") return "Permission slip created";
   if (entry.actionType === "RECORD_UPDATED") return "Permission slip updated";
   if (entry.actionType === "STATUS_CHANGE") {
     const metadata = entry.metadata as Record<string, unknown> | null;
-    if (metadata?.autoApproved) return "Approved";
-    if (metadata?.autoRecorded) return "Recorded";
-    return `${entry.previousState} → ${entry.newState}`;
+    if (metadata?.autoApproved) return "Authorized";
+    if (metadata?.autoRecorded) return "Authorized for AI Reliance";
+    const from = STATE_DISPLAY_LABELS[entry.previousState ?? ""] ?? entry.previousState;
+    const to = STATE_DISPLAY_LABELS[entry.newState ?? ""] ?? entry.newState;
+    return `${from} → ${to}`;
   }
   return entry.actionType;
 }

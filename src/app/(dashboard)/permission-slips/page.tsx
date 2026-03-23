@@ -54,7 +54,7 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
     <div className="animate-fade-in-up">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-on-surface">Permission Slips</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-on-surface">AI Permission Slips</h1>
           <p className="mt-1 text-sm text-on-surface-secondary">
             {user.role === "EMPLOYEE"
               ? "Your permission slips"

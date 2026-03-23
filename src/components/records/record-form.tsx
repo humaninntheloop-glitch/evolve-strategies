@@ -77,7 +77,7 @@ export function RecordForm({ record }: RecordFormProps) {
 
         {/* Section 1: AI Usage Details */}
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Section 1 — AI Usage Details</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Section 1 — AI Reliance Details</p>
           <div className="mt-1 h-px bg-border-subtle" />
         </div>
 
@@ -93,7 +93,7 @@ export function RecordForm({ record }: RecordFormProps) {
         <Select
           id="aiOutputImpact"
           name="aiOutputImpact"
-          label="What will this AI output influence?"
+          label="AI Output Description / Workflow Type"
           description="This determines the risk level. External-facing or consequential outputs require reviewer authorization."
           options={aiOutputImpactOptions}
           placeholder="Select AI output impact"
@@ -104,7 +104,7 @@ export function RecordForm({ record }: RecordFormProps) {
         <Select
           id="dataSensitivity"
           name="dataSensitivity"
-          label="Does this AI usage involve sensitive or regulated data?"
+          label="Does this AI usage involve sensitive or regulated data? (Yes/No radio)"
           description="Sensitive or regulated data includes personal data, financial information, health data, confidential client data, or regulated data."
           options={booleanOptions}
           placeholder="Select an option"
@@ -148,7 +148,7 @@ export function RecordForm({ record }: RecordFormProps) {
 
         <CheckboxGroup
           name="humanReviewPlan"
-          label="How will you review AI output before use?"
+          label="Human Oversight Plan"
           description="Select all review methods you plan to apply. At least one human review step is required."
           options={[...HUMAN_REVIEW_PLAN_OPTIONS]}
           defaultValues={record?.humanReviewPlan ?? []}
