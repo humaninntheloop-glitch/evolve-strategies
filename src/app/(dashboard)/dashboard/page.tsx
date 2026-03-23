@@ -247,7 +247,7 @@ export default async function DashboardPage() {
                   <Card className="flex items-center gap-3 py-3 px-4 transition-all duration-150 hover:shadow-md hover:border-border-strong">
                     <ClipboardText className="h-5 w-5 text-amber-500 dark:text-amber-400" />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-on-surface">Review Queue</p>
+                      <p className="text-sm font-medium text-on-surface">AI Authorization Review</p>
                       <p className="text-xs text-on-surface-quaternary">
                         {stats.pendingReview} pending
                       </p>

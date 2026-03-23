@@ -185,7 +185,7 @@ export const REVIEWER_DECISION_RATIONALE_OPTIONS = [
 
 export const REVIEWER_DECISION_RATIONALE_LABELS: Record<string, string> = {
   AI_USE_APPROPRIATE: "AI Use Appropriate for Task",
-  REVIEW_PLAN_MITIGATES: "Human Review Plan Mitigates Risk",
+  REVIEW_PLAN_MITIGATES: "Human Oversight Plan Mitigates Risk",
   RISK_ACCEPTABLE: "Risk Level Acceptable",
   ADDITIONAL_SAFEGUARDS: "Additional Safeguards Applied",
   AI_NOT_APPROPRIATE: "AI Reliance Not Appropriate",
