@@ -11,12 +11,12 @@ interface SummaryInput {
   riskJustification: string;
 }
 
-const FALLBACK = "AI summary could not be generated. Please refer to the risk classification and record details for context.";
+const FALLBACK = "Risk explanation could not be generated. Please refer to the risk classification and record details for context.";
 
 export async function generateAiSummary(input: SummaryInput): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    console.warn("OPENAI_API_KEY not set — skipping AI summary");
+    console.warn("OPENAI_API_KEY not set — skipping risk explanation");
     return FALLBACK;
   }
 
@@ -47,7 +47,7 @@ Write the summary now:`;
     const summary = response.choices[0]?.message?.content?.trim();
     return summary || FALLBACK;
   } catch (error) {
-    console.error("AI summary generation failed:", error);
+    console.error("Risk explanation generation failed:", error);
     return FALLBACK;
   }
 }

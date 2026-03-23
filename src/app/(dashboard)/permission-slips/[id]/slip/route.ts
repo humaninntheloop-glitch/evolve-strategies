@@ -416,7 +416,7 @@ async function generateSlipPdf(
 
   if (record.aiSummary) {
     ensureSpace(80);
-    label("AI Summary", M, y);
+    label("Risk Explanation", M, y);
     y -= 16;
 
     const summaryLines = wrap(record.aiSummary, regular, 9.5, W - 24);

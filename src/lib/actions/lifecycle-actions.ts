@@ -165,7 +165,7 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
           justification: "Risk could not be determined — missing AI output impact. Manual review required.",
         };
 
-    // Generate AI summary (non-blocking — uses fallback on failure)
+    // Generate risk explanation (non-blocking — uses fallback on failure)
     const aiSummary = await generateAiSummary({
       aiToolUsed: record.aiToolUsed,
       aiOutputImpact: record.aiOutputImpact ?? "UNKNOWN",
