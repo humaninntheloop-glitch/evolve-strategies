@@ -600,7 +600,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             onClick={() => setConfirmApproveOpen(true)}
           >
             <CheckCircle className="h-3.5 w-3.5" />
-            Confirm Authorization
+            Confirm AI Authorization
           </Button>
         </div>
       </Dialog>
@@ -612,7 +612,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" weight="fill" />
           </div>
           <div>
-            <DialogTitle>Confirm Authorization</DialogTitle>
+            <DialogTitle>Confirm AI Authorization</DialogTitle>
             <DialogDescription>
               You are authorizing reliance on AI-generated output for this workflow. Please confirm that appropriate human review and validation has occurred.
             </DialogDescription>
