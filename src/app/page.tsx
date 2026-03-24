@@ -6,6 +6,7 @@ import {
   BarChart3,
   FileCheck,
 } from "lucide-react";
+import { AnimateOnScroll } from "@/components/landing/animate-on-scroll";
 
 /* Landing page accent — HSL(210, 100%, 56%) */
 const A = "text-[#1F8FFF]"; // accent text
@@ -128,7 +129,7 @@ export default function LandingPage() {
             </div>
             <Link
               href="/login"
-              className={`hidden sm:inline-flex font-mono-display text-xs uppercase tracking-widest ${AB} text-white px-5 py-2.5 transition-colors hover:bg-[#1F8FFF]/90`}
+              className={`hidden sm:inline-flex font-mono-display text-xs uppercase tracking-widest ${AB} text-black px-5 py-2.5 transition-colors hover:bg-[#1F8FFF]/90`}
             >
               Create AI Permission Slip
             </Link>
@@ -137,10 +138,10 @@ export default function LandingPage() {
 
         {/* ─── HERO ─── */}
         <section className="relative min-h-screen flex items-center pt-24 pb-20 overflow-hidden">
-          <div className="container mx-auto px-6 lg:px-12">
+          <div className="container mx-auto px-3 lg:px-6">
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
               {/* Left — Copy */}
-              <div>
+              <AnimateOnScroll>
                 <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-6`}>
                   The System for Authorization Before AI Reliance
                 </p>
@@ -153,63 +154,65 @@ export default function LandingPage() {
                 <div className="flex flex-wrap gap-4">
                   <Link
                     href="/login"
-                    className={`font-mono-display text-sm uppercase tracking-widest ${AB} text-white px-8 py-3.5 transition-colors hover:bg-[#1F8FFF]/90 signal-glow`}
+                    className={`font-mono-display text-sm uppercase tracking-widest ${AB} text-black px-8 py-3.5 transition-colors hover:bg-[#1F8FFF]/90 signal-glow`}
                   >
                     Create AI Permission Slip
                   </Link>
                   <a
                     href="#how-it-works"
-                    className="font-mono-display text-sm uppercase tracking-widest border border-border-default text-on-surface px-8 py-3.5 transition-colors hover:bg-white/[0.04]"
+                    className="font-mono-display text-sm uppercase tracking-widest border border-border-default text-on-surface px-8 py-3.5 transition-colors hover:bg-white/4"
                   >
                     View Workflow
                   </a>
                 </div>
-              </div>
+              </AnimateOnScroll>
 
               {/* Right — Live Feed */}
-              <div className="etched-border p-1 hidden lg:block">
-                <div className="border-b border-border-default px-4 py-3 flex items-center justify-between">
-                  <span className="font-mono-display text-xs uppercase tracking-widest text-on-surface-tertiary">
-                    Live Authorization Feed
-                  </span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                </div>
-                <div className="h-[380px] overflow-hidden">
-                  <div className="landing-feed-scroll">
-                    {[...feedEntries, ...feedEntries].map((entry, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between px-4 py-3 border-b border-border-subtle hover:bg-white/[0.02] transition-colors"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <span className="font-mono-display text-sm text-on-surface">
-                            {entry.title}
-                          </span>
+              <AnimateOnScroll delay={200} className="hidden lg:block">
+                <div className="etched-border p-1">
+                  <div className="border-b border-border-default px-4 py-3 flex items-center justify-between">
+                    <span className="font-mono-display text-xs uppercase tracking-widest text-on-surface-tertiary">
+                      Live Authorization Feed
+                    </span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  </div>
+                  <div className="h-[380px] overflow-hidden">
+                    <div className="landing-feed-scroll">
+                      {[...feedEntries, ...feedEntries].map((entry, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between px-4 py-3 border-b border-border-subtle hover:bg-white/2 transition-colors"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <span className="font-mono-display text-sm text-on-surface">
+                              {entry.title}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4 ml-4 shrink-0">
+                            <span className={`font-mono-display text-xs font-semibold ${statusColor[entry.status]}`}>
+                              {entry.status}
+                            </span>
+                            <span className="font-mono-display text-xs text-on-surface-tertiary">
+                              {entry.reviewer}
+                            </span>
+                            <span className="font-mono-display text-xs text-on-surface-quaternary">
+                              {entry.time}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-4 ml-4 shrink-0">
-                          <span className={`font-mono-display text-xs font-semibold ${statusColor[entry.status]}`}>
-                            {entry.status}
-                          </span>
-                          <span className="font-mono-display text-xs text-on-surface-tertiary">
-                            {entry.reviewer}
-                          </span>
-                          <span className="font-mono-display text-xs text-on-surface-quaternary">
-                            {entry.time}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </AnimateOnScroll>
             </div>
           </div>
         </section>
 
         {/* ─── PROBLEM ─── */}
         <section id="problem" className="py-32 border-t border-border-default">
-          <div className="container mx-auto px-6 lg:px-12">
-            <div className="max-w-3xl">
+          <div className="container mx-auto px-3 lg:px-6">
+            <AnimateOnScroll className="max-w-3xl">
               <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-6`}>
                 The Problem
               </p>
@@ -227,16 +230,16 @@ export default function LandingPage() {
                   <span className="text-on-surface font-medium">AI Reliance</span> is an unmanaged operational risk, exposing the business to regulatory liability and reputational damage.
                 </p>
               </div>
-            </div>
+            </AnimateOnScroll>
           </div>
         </section>
 
         {/* ─── SOLUTION ─── */}
         <section id="solution" className="py-32 border-t border-border-default">
-          <div className="container mx-auto px-6 lg:px-12">
+          <div className="container mx-auto px-3 lg:px-6">
             <div className="grid lg:grid-cols-2 gap-16 items-start">
               {/* Left — Copy */}
-              <div>
+              <AnimateOnScroll>
                 <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-6`}>
                   The Solution
                 </p>
@@ -254,36 +257,38 @@ export default function LandingPage() {
                     <span className="text-on-surface font-medium">Human Oversight Plan</span>, classified for risk, and formally decided upon by a responsible party. The system ensures that tacit reliance is converted into an auditable, explicit decision.
                   </p>
                 </div>
-              </div>
+              </AnimateOnScroll>
 
               {/* Right — Authorization Record Card */}
-              <div className="etched-border">
-                <div className="border-b border-border-default px-6 py-4">
-                  <span className="font-mono-display text-xs uppercase tracking-[0.3em] text-on-surface-tertiary">
-                    AI Permission Slip — Authorization Record
-                  </span>
+              <AnimateOnScroll delay={150}>
+                <div className="etched-border">
+                  <div className="border-b border-border-default px-6 py-4">
+                    <span className="font-mono-display text-xs uppercase tracking-[0.3em] text-on-surface-tertiary">
+                      AI Permission Slip — Authorization Record
+                    </span>
+                  </div>
+                  <div className="divide-y divide-border-subtle">
+                    {recordFields.map((field) => (
+                      <div key={field.label} className="flex items-start gap-4 px-6 py-3.5 transition-colors cursor-default">
+                        <span className="font-mono-display text-xs uppercase tracking-widest text-on-surface-tertiary w-32 shrink-0 pt-0.5">
+                          {field.label}
+                        </span>
+                        <span className={`font-mono-display text-sm ${field.isStatus ? "text-emerald-400 font-semibold" : "text-on-surface"}`}>
+                          {field.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="divide-y divide-border-subtle">
-                  {recordFields.map((field) => (
-                    <div key={field.label} className="flex items-start gap-4 px-6 py-3.5 transition-colors cursor-default">
-                      <span className="font-mono-display text-xs uppercase tracking-widest text-on-surface-tertiary w-32 shrink-0 pt-0.5">
-                        {field.label}
-                      </span>
-                      <span className={`font-mono-display text-sm ${field.isStatus ? "text-emerald-400 font-semibold" : "text-on-surface"}`}>
-                        {field.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              </AnimateOnScroll>
             </div>
           </div>
         </section>
 
         {/* ─── HOW IT WORKS ─── */}
         <section id="how-it-works" className="py-32 border-t border-border-default">
-          <div className="container mx-auto px-6 lg:px-12">
-            <div className="text-center mb-20">
+          <div className="container mx-auto px-3 lg:px-6">
+            <AnimateOnScroll className="text-center mb-20">
               <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-6`}>
                 How It Works
               </p>
@@ -293,27 +298,29 @@ export default function LandingPage() {
               <p className="mt-6 text-on-surface-secondary text-lg max-w-2xl mx-auto">
                 The system enforces a mandatory chain of human oversight before AI output can be acted upon.
               </p>
-            </div>
+            </AnimateOnScroll>
 
             <div className="relative max-w-2xl mx-auto">
               {/* Vertical line */}
               <div className="absolute left-6 top-0 bottom-0 w-px bg-border-default" />
 
-              <div className="space-y-0">
+              <div className="space-y-8">
                 {steps.map((step, i) => (
-                  <div key={step.title} className="relative pl-16 pb-14 last:pb-0">
-                    {/* Square step marker */}
-                    <div className={`absolute left-4 top-1 w-5 h-5 border-2 ${ABorder} bg-[#1F8FFF]/20`} />
-                    <div className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-2`}>
-                      Step {i + 1}
+                  <AnimateOnScroll key={step.title} delay={i * 80}>
+                    <div className="relative pl-16 pb-20 last:pb-0">
+                      {/* Square step marker */}
+                      <div className={`absolute left-4 top-1 w-5 h-5 border-2 ${ABorder} bg-[#1F8FFF]/20`} />
+                      <div className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-2`}>
+                        Step {i + 1}
+                      </div>
+                      <h3 className="font-mono-display text-xl font-bold text-on-surface uppercase tracking-tight mb-3">
+                        {step.title}
+                      </h3>
+                      <p className="text-on-surface-secondary leading-relaxed">
+                        {step.desc}
+                      </p>
                     </div>
-                    <h3 className="font-mono-display text-xl font-bold text-on-surface uppercase tracking-tight mb-3">
-                      {step.title}
-                    </h3>
-                    <p className="text-on-surface-secondary leading-relaxed">
-                      {step.desc}
-                    </p>
-                  </div>
+                  </AnimateOnScroll>
                 ))}
               </div>
             </div>
@@ -322,8 +329,8 @@ export default function LandingPage() {
 
         {/* ─── BENEFITS ─── */}
         <section id="benefits" className="py-32 border-t border-border-default">
-          <div className="container mx-auto px-6 lg:px-12">
-            <div className="mb-16">
+          <div className="container mx-auto px-3 lg:px-6">
+            <AnimateOnScroll className="mb-16">
               <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-6`}>
                 What You Get
               </p>
@@ -333,24 +340,23 @@ export default function LandingPage() {
               <p className="mt-6 text-on-surface-secondary text-lg max-w-2xl">
                 The AI Permission Slip system delivers the necessary proof of control for enterprise AI deployment.
               </p>
-            </div>
+            </AnimateOnScroll>
 
             <div className="grid md:grid-cols-2 gap-px bg-border-default">
-              {benefits.map((b) => {
+              {benefits.map((b, i) => {
                 const Icon = b.icon;
                 return (
-                  <div
-                    key={b.title}
-                    className="bg-surface p-8 lg:p-12 group hover:bg-white/[0.02] transition-colors"
-                  >
-                    <Icon className={`w-6 h-6 ${A} mb-6`} strokeWidth={1.5} />
-                    <h3 className="font-mono-display text-lg font-bold uppercase tracking-tight text-on-surface mb-4">
-                      {b.title}
-                    </h3>
-                    <p className="text-on-surface-secondary leading-relaxed">
-                      {b.desc}
-                    </p>
-                  </div>
+                  <AnimateOnScroll key={b.title} delay={i * 100} className="bg-surface">
+                    <div className="h-full p-8 lg:p-12 group hover:bg-white/[0.04] transition-all duration-200">
+                      <Icon className={`w-6 h-6 ${A} mb-6`} strokeWidth={1.5} />
+                      <h3 className="font-mono-display text-lg font-bold uppercase tracking-tight text-on-surface mb-4">
+                        {b.title}
+                      </h3>
+                      <p className="text-on-surface-secondary leading-relaxed">
+                        {b.desc}
+                      </p>
+                    </div>
+                  </AnimateOnScroll>
                 );
               })}
             </div>
@@ -359,8 +365,8 @@ export default function LandingPage() {
 
         {/* ─── DIFFERENTIATION ─── */}
         <section className="py-32 border-t border-border-default">
-          <div className="container mx-auto px-6 lg:px-12">
-            <div>
+          <div className="container mx-auto px-3 lg:px-6">
+            <AnimateOnScroll>
               <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-6`}>
                 Differentiation
               </p>
@@ -370,101 +376,103 @@ export default function LandingPage() {
               <p className="text-lg text-on-surface-secondary mb-16 max-w-2xl">
                 AI Permission Slip is not a passive tool. It is an active enforcement system governing the AI Reliance event.
               </p>
-            </div>
+            </AnimateOnScroll>
 
-            <div className="grid md:grid-cols-2 gap-px bg-border-default etched-border overflow-hidden">
-              {/* We Are NOT */}
-              <div className="bg-surface p-8 lg:p-12 opacity-40">
-                <p className="font-mono-display text-xs uppercase tracking-[0.3em] text-on-surface-tertiary mb-8">
-                  We Are NOT
-                </p>
-                <div className="space-y-8">
-                  <div>
-                    <h3 className="font-mono-display text-sm font-bold uppercase text-on-surface-tertiary mb-2">
-                      Monitoring
-                    </h3>
-                    <p className="text-on-surface-tertiary text-sm leading-relaxed">
-                      Passively tracks how users interact with AI tools. Records activity after the fact. No enforcement.
-                    </p>
+            <AnimateOnScroll delay={100}>
+              <div className="grid md:grid-cols-2 gap-px bg-border-default etched-border overflow-hidden">
+                {/* We Are NOT */}
+                <div className="bg-surface p-8 lg:p-12">
+                  <p className="font-mono-display text-xs uppercase tracking-[0.3em] text-[hsl(220,10%,50%)] mb-8">
+                    We Are NOT
+                  </p>
+                  <div className="space-y-8">
+                    <div>
+                      <h3 className="font-mono-display text-sm font-bold uppercase text-[hsl(220,10%,50%)] mb-2">
+                        Monitoring
+                      </h3>
+                      <p className="text-[hsl(220,10%,50%)] text-sm leading-relaxed">
+                        Passively tracks how users interact with AI tools. Records activity after the fact. No enforcement.
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="font-mono-display text-sm font-bold uppercase text-[hsl(220,10%,50%)] mb-2">
+                        Logging
+                      </h3>
+                      <p className="text-[hsl(220,10%,50%)] text-sm leading-relaxed">
+                        Records the inputs and outputs of AI models. No governance decision. No accountability.
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="font-mono-display text-sm font-bold uppercase text-[hsl(220,10%,50%)] mb-2">
+                        Passive Tracking
+                      </h3>
+                      <p className="text-[hsl(220,10%,50%)] text-sm leading-relaxed">
+                        These systems record user activity after the fact. No control point. No human action required.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-mono-display text-sm font-bold uppercase text-on-surface-tertiary mb-2">
-                      Logging
-                    </h3>
-                    <p className="text-on-surface-tertiary text-sm leading-relaxed">
-                      Records the inputs and outputs of AI models. No governance decision. No accountability.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-mono-display text-sm font-bold uppercase text-on-surface-tertiary mb-2">
-                      Passive Tracking
-                    </h3>
-                    <p className="text-on-surface-tertiary text-sm leading-relaxed">
-                      These systems record user activity after the fact. No control point. No human action required.
-                    </p>
+                </div>
+
+                {/* We ARE */}
+                <div className="bg-surface p-8 lg:p-12 border-l border-[#1F8FFF]/30">
+                  <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-8`}>
+                    We ARE
+                  </p>
+                  <div className="space-y-8">
+                    <div>
+                      <h3 className="font-mono-display text-sm font-bold uppercase text-on-surface mb-2">
+                        Active Authorization
+                      </h3>
+                      <p className="text-on-surface-secondary text-sm leading-relaxed">
+                        We <span className="text-on-surface font-medium">block use until human action is taken</span>.
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="font-mono-display text-sm font-bold uppercase text-on-surface mb-2">
+                        Human-in-the-Loop Governance
+                      </h3>
+                      <p className="text-on-surface-secondary text-sm leading-relaxed">
+                        We enforce the formal <span className="text-on-surface font-medium">Human Oversight</span> step.
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="font-mono-display text-sm font-bold uppercase text-on-surface mb-2">
+                        Decision Enforcement
+                      </h3>
+                      <p className="text-on-surface-secondary text-sm leading-relaxed">
+                        We record the auditable human decision and the <span className="text-on-surface font-medium">Authorization status</span>, ensuring accountability.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              {/* We ARE */}
-              <div className="bg-surface p-8 lg:p-12 border-l border-[#1F8FFF]/30">
-                <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-8`}>
-                  We ARE
-                </p>
-                <div className="space-y-8">
-                  <div>
-                    <h3 className="font-mono-display text-sm font-bold uppercase text-on-surface mb-2">
-                      Active Authorization
-                    </h3>
-                    <p className="text-on-surface-secondary text-sm leading-relaxed">
-                      We <span className="text-on-surface font-medium">block use until human action is taken</span>.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-mono-display text-sm font-bold uppercase text-on-surface mb-2">
-                      Human-in-the-Loop Governance
-                    </h3>
-                    <p className="text-on-surface-secondary text-sm leading-relaxed">
-                      We enforce the formal <span className="text-on-surface font-medium">Human Oversight</span> step.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-mono-display text-sm font-bold uppercase text-on-surface mb-2">
-                      Decision Enforcement
-                    </h3>
-                    <p className="text-on-surface-secondary text-sm leading-relaxed">
-                      We record the auditable human decision and the <span className="text-on-surface font-medium">Authorization status</span>, ensuring accountability.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            </AnimateOnScroll>
           </div>
         </section>
 
         {/* ─── CONTACT CTA ─── */}
         <section id="contact" className="py-32 border-t border-border-default">
-          <div className="container mx-auto px-6 lg:px-12">
-            <div className="text-center max-w-3xl mx-auto">
+          <div className="container mx-auto px-3 lg:px-6">
+            <AnimateOnScroll className="text-center max-w-3xl mx-auto">
               <h2 className="text-clamp-section font-mono-display uppercase font-bold tracking-tight text-on-surface mb-8">
                 Establish the Human Control Point in Your AI Strategy
               </h2>
               <Link
                 href="/login"
-                className={`inline-flex font-mono-display text-sm uppercase tracking-widest ${AB} text-white px-10 py-4 transition-colors hover:bg-[#1F8FFF]/90 signal-glow`}
+                className={`inline-flex font-mono-display text-sm uppercase tracking-widest ${AB} text-black px-10 py-4 transition-colors hover:bg-[#1F8FFF]/90 signal-glow`}
               >
                 Create AI Permission Slip
               </Link>
               <p className="mt-6 text-on-surface-secondary text-sm">
                 Deploy AI with confidence, backed by verifiable governance and auditable Human Oversight.
               </p>
-            </div>
+            </AnimateOnScroll>
           </div>
         </section>
 
         {/* ─── FOOTER ─── */}
         <footer className="border-t border-border-default py-12">
-          <div className="container mx-auto px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="container mx-auto px-3 lg:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
             <Image
               src="/logo-with-text.png"
               alt="Human In The Loop"
