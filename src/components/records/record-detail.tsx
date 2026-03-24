@@ -133,7 +133,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             onClick={() => handleAction(() => submitRecord(record.id))}
           >
             <PaperPlaneTilt className="h-3.5 w-3.5" />
-            Submit for Review
+            Submit AI Authorization Request
           </Button>
         );
       case "APPROVED":
@@ -630,7 +630,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             }}
           >
             <CheckCircle className="h-3.5 w-3.5" />
-            Submit AI Authorization Request
+            Authorize AI Reliance
           </Button>
         </div>
       </Dialog>
