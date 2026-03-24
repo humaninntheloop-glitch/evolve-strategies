@@ -7,6 +7,11 @@ import {
   FileCheck,
 } from "lucide-react";
 
+/* Landing page accent — HSL(210, 100%, 56%) */
+const A = "text-[#1F8FFF]"; // accent text
+const AB = "bg-[#1F8FFF]"; // accent bg
+const ABorder = "border-[#1F8FFF]"; // accent border
+
 /* ─── Live Authorization Feed Data ─── */
 const feedEntries = [
   { title: "Legal Contract Drafting", status: "AUTHORIZED" as const, reviewer: "J. Chen", time: "14:32 UTC" },
@@ -124,7 +129,7 @@ export default function LandingPage() {
             </div>
             <Link
               href="/login"
-              className="hidden sm:inline-flex font-mono-display text-xs uppercase tracking-widest bg-white text-zinc-900 px-5 py-2.5 transition-colors hover:bg-white/90"
+              className={`hidden sm:inline-flex font-mono-display text-xs uppercase tracking-widest ${AB} text-white px-5 py-2.5 transition-colors hover:bg-[#1F8FFF]/90`}
             >
               Create AI Permission Slip
             </Link>
@@ -137,7 +142,7 @@ export default function LandingPage() {
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
               {/* Left — Copy */}
               <div>
-                <p className="font-mono-display text-xs uppercase tracking-[0.3em] text-brand-400 mb-6">
+                <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-6`}>
                   The System for Authorization Before AI Reliance
                 </p>
                 <h1 className="text-clamp-hero font-mono-display uppercase font-bold tracking-tight text-on-surface mb-8">
@@ -149,7 +154,7 @@ export default function LandingPage() {
                 <div className="flex flex-wrap gap-4">
                   <Link
                     href="/login"
-                    className="font-mono-display text-sm uppercase tracking-widest bg-white text-zinc-900 px-8 py-3.5 transition-colors hover:bg-white/90 signal-glow"
+                    className={`font-mono-display text-sm uppercase tracking-widest ${AB} text-white px-8 py-3.5 transition-colors hover:bg-[#1F8FFF]/90 signal-glow`}
                   >
                     Create AI Permission Slip
                   </Link>
@@ -206,7 +211,7 @@ export default function LandingPage() {
         <section id="problem" className="py-32 border-t border-border-default">
           <div className="container mx-auto px-6 lg:px-12">
             <div className="max-w-3xl">
-              <p className="font-mono-display text-xs uppercase tracking-[0.3em] text-brand-400 mb-6">
+              <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-6`}>
                 The Problem
               </p>
               <h2 className="text-clamp-section font-mono-display uppercase font-bold tracking-tight text-on-surface mb-10">
@@ -233,7 +238,7 @@ export default function LandingPage() {
             <div className="grid lg:grid-cols-2 gap-16 items-start">
               {/* Left — Copy */}
               <div>
-                <p className="font-mono-display text-xs uppercase tracking-[0.3em] text-brand-400 mb-6">
+                <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-6`}>
                   The Solution
                 </p>
                 <h2 className="text-clamp-section font-mono-display uppercase font-bold tracking-tight text-on-surface mb-10">
@@ -280,7 +285,7 @@ export default function LandingPage() {
         <section id="how-it-works" className="py-32 border-t border-border-default">
           <div className="container mx-auto px-6 lg:px-12">
             <div className="text-center mb-20">
-              <p className="font-mono-display text-xs uppercase tracking-[0.3em] text-brand-400 mb-6">
+              <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-6`}>
                 How It Works
               </p>
               <h2 className="text-clamp-section font-mono-display uppercase font-bold tracking-tight text-on-surface max-w-3xl mx-auto">
@@ -299,8 +304,8 @@ export default function LandingPage() {
                 {steps.map((step, i) => (
                   <div key={step.title} className="relative pl-16 pb-14 last:pb-0">
                     {/* Square step marker */}
-                    <div className="absolute left-4 top-1 w-5 h-5 border-2 border-brand-400 bg-brand-400/20" />
-                    <div className="font-mono-display text-xs uppercase tracking-[0.3em] text-brand-400 mb-2">
+                    <div className={`absolute left-4 top-1 w-5 h-5 border-2 ${ABorder} bg-[#1F8FFF]/20`} />
+                    <div className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-2`}>
                       Step {i + 1}
                     </div>
                     <h3 className="font-mono-display text-xl font-bold text-on-surface uppercase tracking-tight mb-3">
@@ -320,7 +325,7 @@ export default function LandingPage() {
         <section id="benefits" className="py-32 border-t border-border-default">
           <div className="container mx-auto px-6 lg:px-12">
             <div className="mb-16">
-              <p className="font-mono-display text-xs uppercase tracking-[0.3em] text-brand-400 mb-6">
+              <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-6`}>
                 What You Get
               </p>
               <h2 className="text-clamp-section font-mono-display uppercase font-bold tracking-tight text-on-surface max-w-3xl">
@@ -339,7 +344,7 @@ export default function LandingPage() {
                     key={b.title}
                     className="bg-surface p-8 lg:p-12 group hover:bg-white/[0.02] transition-colors"
                   >
-                    <Icon className="w-6 h-6 text-brand-400 mb-6" strokeWidth={1.5} />
+                    <Icon className={`w-6 h-6 ${A} mb-6`} strokeWidth={1.5} />
                     <h3 className="font-mono-display text-lg font-bold uppercase tracking-tight text-on-surface mb-4">
                       {b.title}
                     </h3>
@@ -357,7 +362,7 @@ export default function LandingPage() {
         <section className="py-32 border-t border-border-default">
           <div className="container mx-auto px-6 lg:px-12">
             <div>
-              <p className="font-mono-display text-xs uppercase tracking-[0.3em] text-brand-400 mb-6">
+              <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-6`}>
                 Differentiation
               </p>
               <h2 className="text-clamp-section font-mono-display uppercase font-bold tracking-tight text-on-surface mb-6">
@@ -403,8 +408,8 @@ export default function LandingPage() {
               </div>
 
               {/* We ARE */}
-              <div className="bg-surface p-8 lg:p-12 border-l border-brand-400/30">
-                <p className="font-mono-display text-xs uppercase tracking-[0.3em] text-brand-400 mb-8">
+              <div className="bg-surface p-8 lg:p-12 border-l border-[#1F8FFF]/30">
+                <p className={`font-mono-display text-xs uppercase tracking-[0.3em] ${A} mb-8`}>
                   We ARE
                 </p>
                 <div className="space-y-8">
@@ -447,7 +452,7 @@ export default function LandingPage() {
               </h2>
               <Link
                 href="/login"
-                className="inline-flex font-mono-display text-sm uppercase tracking-widest bg-white text-zinc-900 px-10 py-4 transition-colors hover:bg-white/90 signal-glow"
+                className={`inline-flex font-mono-display text-sm uppercase tracking-widest ${AB} text-white px-10 py-4 transition-colors hover:bg-[#1F8FFF]/90 signal-glow`}
               >
                 Create AI Permission Slip
               </Link>
