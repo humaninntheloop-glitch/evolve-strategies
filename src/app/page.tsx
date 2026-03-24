@@ -108,9 +108,8 @@ export default function LandingPage() {
               <Image
                 src="/logo-with-text.png"
                 alt="Human In The Loop"
-                width={180}
-                height={36}
-                className="h-8 w-auto brightness-0 invert"
+                width={150}
+                height={20}
               />
             </Link>
             <div className="hidden items-center gap-8 md:flex">
@@ -469,9 +468,9 @@ export default function LandingPage() {
             <Image
               src="/logo-with-text.png"
               alt="Human In The Loop"
-              width={140}
-              height={28}
-              className="h-6 w-auto brightness-0 invert opacity-60"
+              width={180}
+              height={36}
+              className="h-8 w-auto brightness-0 invert opacity-60"
             />
             <p className="font-mono-display text-xs text-on-surface-tertiary tracking-widest">
               &copy; {new Date().getFullYear()} Human In The Loop Governance. All rights reserved.
