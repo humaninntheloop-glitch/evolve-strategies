@@ -478,7 +478,7 @@ export default function LandingPage() {
               alt="Human In The Loop"
               width={180}
               height={36}
-              className="h-8 w-auto brightness-0 invert opacity-60"
+              className="h-12 w-auto"
             />
             <p className="font-mono-display text-xs text-on-surface-tertiary tracking-widest">
               &copy; {new Date().getFullYear()} Human In The Loop Governance. All rights reserved.
