@@ -346,11 +346,11 @@ body {
 
 /* Signal glow button effect */
 .signal-glow {
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1), 0 0 40px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 20px rgba(31, 143, 255, 0.25), 0 0 40px rgba(31, 143, 255, 0.1);
   transition: box-shadow 0.3s ease;
 }
 .signal-glow:hover {
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.15), 0 0 60px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 30px rgba(31, 143, 255, 0.35), 0 0 60px rgba(31, 143, 255, 0.15);
 }
 
 /* Etched border card */
