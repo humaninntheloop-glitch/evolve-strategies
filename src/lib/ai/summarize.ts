@@ -23,7 +23,7 @@ export async function generateAiSummary(input: SummaryInput): Promise<string> {
   try {
     const openai = new OpenAI({ apiKey });
 
-    const prompt = `You are a compliance assistant for an AI governance platform. Given the following AI usage record, write a 2-4 sentence summary explaining why this record received its risk classification and what a reviewer should pay attention to. Be factual, concise, and professional.
+    const prompt = `You are a compliance assistant for an AI governance platform. Given the following AI reliance record, write a 2-4 sentence summary explaining why this record received its risk classification and what a reviewer should pay attention to. Be factual, concise, and professional.
 
 Record details:
 - AI Tool: ${input.aiToolUsed}

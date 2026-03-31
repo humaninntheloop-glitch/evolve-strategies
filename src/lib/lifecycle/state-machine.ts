@@ -45,6 +45,11 @@ const TRANSITION_RULES: TransitionRule[] = [
     },
   },
   {
+    from: "APPROVED",
+    to: "RECORDED",
+    allowedRoles: ["REVIEWER", "ADMIN"],
+  },
+  {
     from: "SUBMITTED",
     to: "REJECTED",
     allowedRoles: ["REVIEWER", "ADMIN"],

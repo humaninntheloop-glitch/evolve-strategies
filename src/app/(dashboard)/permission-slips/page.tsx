@@ -92,7 +92,7 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
             <Link href="/permission-slips/new" className="mt-5">
               <Button size="sm">
                 <Plus className="h-4 w-4" />
-                New Permission Slip
+                Create AI Permission Slip
               </Button>
             </Link>
           )}

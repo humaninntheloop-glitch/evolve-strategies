@@ -23,7 +23,7 @@ export const createRecordSchema = z
       .transform((v) => v === "true"),
     aiUsageType: z
       .array(z.string())
-      .min(1, "Select at least one AI usage type"),
+      .min(1, "Select at least one AI reliance type"),
     aiUsageTypeOther: z.string().max(500).optional(),
     humanReviewPlan: z
       .array(z.string())
@@ -38,7 +38,7 @@ export const createRecordSchema = z
     (data) =>
       !data.aiUsageType.includes("OTHER") ||
       (data.aiUsageTypeOther && data.aiUsageTypeOther.trim().length > 0),
-    { message: "Please specify the other AI usage type", path: ["aiUsageTypeOther"] }
+    { message: "Please specify the other AI reliance type", path: ["aiUsageTypeOther"] }
   )
   .refine(
     (data) =>
@@ -86,7 +86,7 @@ export const updateRecordSchema = z
     (data) =>
       !data.aiUsageType?.includes("OTHER") ||
       (data.aiUsageTypeOther && data.aiUsageTypeOther.trim().length > 0),
-    { message: "Please specify the other AI usage type", path: ["aiUsageTypeOther"] }
+    { message: "Please specify the other AI reliance type", path: ["aiUsageTypeOther"] }
   )
   .refine(
     (data) =>

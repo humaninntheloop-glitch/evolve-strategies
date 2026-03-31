@@ -91,7 +91,7 @@ export function RecordForm({ record }: RecordFormProps) {
           <CheckboxGroup
             name="aiUsageType"
             label="How is AI being used?"
-            description="Select all that apply. This helps categorize and track AI usage patterns across the organization."
+            description="Select all that apply. This helps categorize and track AI reliance patterns across the organization."
             options={[...AI_USAGE_TYPE_OPTIONS]}
             defaultValues={record?.aiUsageType ?? []}
             showOther
@@ -101,7 +101,7 @@ export function RecordForm({ record }: RecordFormProps) {
 
           <RadioGroup
             name="dataSensitivity"
-            label="Does this AI usage involve sensitive or regulated data?"
+            label="Does this AI reliance involve sensitive or regulated data?"
             description="Sensitive or regulated data includes personal data, financial information, health data, confidential client data, or regulated data."
             options={booleanOptions}
             required
