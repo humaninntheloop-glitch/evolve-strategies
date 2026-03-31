@@ -24,13 +24,14 @@ import {
   submitRecord,
   approveRecord,
   rejectRecord,
+  finalizeRecord,
 } from "@/lib/actions/lifecycle-actions";
 import { deleteRecord } from "@/lib/actions/record-actions";
 import { Dialog, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { CheckboxGroup } from "@/components/ui/checkbox-group";
-import { PencilSimple, Trash, PaperPlaneTilt, CheckCircle, XCircle, DownloadSimple, CircleNotch, Sparkle, ShieldCheck, ShieldSlash } from "@phosphor-icons/react";
+import { PencilSimple, Trash, PaperPlaneTilt, CheckCircle, XCircle, DownloadSimple, CircleNotch, Sparkle, ShieldCheck, ShieldSlash, Lock } from "@phosphor-icons/react";
 import type { RecordWithRelations, AuditLogEntry, RecordStatus, AuthUser } from "@/types";
 import { getAvailableTransitions } from "@/lib/lifecycle/state-machine";
 
@@ -159,6 +160,18 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
           >
             <XCircle className="h-3.5 w-3.5" />
             Reject AI Reliance
+          </Button>
+        );
+      case "RECORDED":
+        return (
+          <Button
+            key="finalize"
+            size="sm"
+            disabled={loading}
+            onClick={() => handleAction(() => finalizeRecord(record.id))}
+          >
+            <Lock className="h-3.5 w-3.5" />
+            Finalize Record
           </Button>
         );
       default:
@@ -391,7 +404,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
 
                   {record.aiUsageType.length > 0 && (
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Usage Type</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Reliance Type</p>
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {record.aiUsageType.map((type) => (
                           <span
@@ -412,7 +425,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
 
                   {record.humanReviewPlan.length > 0 && (
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Human Oversight Plan</p>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-secondary">Human Oversight Plan</p>
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {record.humanReviewPlan.map((plan) => (
                           <span
@@ -561,7 +574,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
         <div className="mt-4 space-y-4">
           <RadioGroup
             label="Decision Rationale"
-            description="Why are you authorizing this AI usage?"
+            description="Why are you authorizing this AI reliance?"
             required
             options={[...REVIEWER_DECISION_RATIONALE_OPTIONS]}
             value={approveRationale}
@@ -639,13 +652,13 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
       <Dialog open={rejectDialogOpen} onClose={() => setRejectDialogOpen(false)}>
         <DialogTitle>Reject AI Reliance</DialogTitle>
         <DialogDescription>
-          Provide a reason for rejecting this AI usage request. The requestor will be able to see
+          Provide a reason for rejecting this AI reliance request. The requestor will be able to see
           this feedback and may revise and resubmit.
         </DialogDescription>
         <div className="mt-4 space-y-4">
           <RadioGroup
             label="Decision Rationale"
-            description="Why are you rejecting this AI usage?"
+            description="Why are you rejecting this AI reliance?"
             options={[...REVIEWER_DECISION_RATIONALE_OPTIONS]}
             value={rejectRationale}
             onChange={setRejectRationale}

@@ -137,10 +137,6 @@ async function generateSlipPdf(
     return lines;
   };
 
-  const label = (s: string, x: number, yy: number) => {
-    text(s.toUpperCase(), x, yy, { font: bold, size: 7, color: C.label });
-  };
-
   const rect = (x: number, yy: number, w: number, h: number, opts: { fill?: Color; border?: Color; bw?: number } = {}) => {
     if (opts.fill) page.drawRectangle({ x, y: yy, width: w, height: h, color: opts.fill });
     if (opts.border) page.drawRectangle({ x, y: yy, width: w, height: h, borderColor: opts.border, borderWidth: opts.bw ?? 0.5 });
@@ -153,6 +149,89 @@ async function generateSlipPdf(
 
   // Determine if record uses new or legacy fields
   const hasNewFields = !!record.aiOutputImpact;
+
+  // ── Table drawing helper ─────────────────────────────────
+  const drawTable = (
+    colWidths: number[],
+    headers: string[],
+    rows: string[][],
+    colFonts?: Font[],
+  ) => {
+    const cellPadX = 8;
+    const cellPadY = 6;
+    const dataSize = 8.5;
+    const headerSize = 7.5;
+    const lineH = 12;
+    const minRowH = 24;
+    const tableX = M;
+
+    // Header row
+    let maxHdrLines = 1;
+    for (let i = 0; i < headers.length; i++) {
+      const lines = wrap(headers[i], bold, headerSize, colWidths[i] - cellPadX * 2);
+      maxHdrLines = Math.max(maxHdrLines, lines.length);
+    }
+    const hdrH = Math.max(minRowH, maxHdrLines * lineH + cellPadY * 2);
+    ensureSpace(hdrH + 60);
+    rect(tableX, y - hdrH, W, hdrH, { fill: C.faint, border: C.rule });
+
+    let colX = tableX;
+    for (let i = 0; i < headers.length; i++) {
+      text(headers[i].toUpperCase(), colX + cellPadX, y - cellPadY - 8, {
+        font: bold, size: headerSize, color: C.label,
+      });
+      colX += colWidths[i];
+    }
+
+    colX = tableX;
+    for (let i = 1; i < colWidths.length; i++) {
+      colX += colWidths[i - 1];
+      page.drawLine({
+        start: { x: colX, y: y },
+        end: { x: colX, y: y - hdrH },
+        thickness: 0.5, color: C.rule,
+      });
+    }
+    y -= hdrH;
+
+    // Data rows
+    for (const cells of rows) {
+      const wrapped: string[][] = [];
+      let maxLines = 1;
+      for (let i = 0; i < cells.length; i++) {
+        const f = colFonts?.[i] ?? regular;
+        const lines = wrap(cells[i] || "\u2014", f, dataSize, colWidths[i] - cellPadX * 2);
+        wrapped.push(lines);
+        maxLines = Math.max(maxLines, lines.length);
+      }
+      const rH = Math.max(minRowH, maxLines * lineH + cellPadY * 2);
+      ensureSpace(rH + 4);
+
+      rect(tableX, y - rH, W, rH, { border: C.rule });
+
+      colX = tableX;
+      for (let i = 0; i < cells.length; i++) {
+        const f = colFonts?.[i] ?? regular;
+        let cellY = y - cellPadY - 8;
+        for (const line of wrapped[i]) {
+          text(line, colX + cellPadX, cellY, { font: f, size: dataSize, color: C.body });
+          cellY -= lineH;
+        }
+        colX += colWidths[i];
+      }
+
+      colX = tableX;
+      for (let i = 1; i < colWidths.length; i++) {
+        colX += colWidths[i - 1];
+        page.drawLine({
+          start: { x: colX, y: y },
+          end: { x: colX, y: y - rH },
+          thickness: 0.5, color: C.rule,
+        });
+      }
+      y -= rH;
+    }
+  };
 
   // ═══════════════════════════════════════════════════════════
   //  TOP BAND — Logo + Org (left) | QR verification (right)
@@ -192,395 +271,283 @@ async function generateSlipPdf(
   y -= topBandH + 16;
 
   // ═══════════════════════════════════════════════════════════
-  //  DOCUMENT TITLE (centered)
+  //  1. TITLE
   // ═══════════════════════════════════════════════════════════
 
-  textCentered("AI Authorization Slip", y, { font: bold, size: 15, color: C.black });
-  y -= 22;
-  textCentered(`Recorded on ${formatDate(record.recordedAt)}`, y, { size: 9.5, color: C.medium });
-  y -= 28;
+  textCentered("AI Permission Slip: Final Authorization Record", y, { font: bold, size: 14, color: C.black });
+  y -= 20;
 
-  // ═══════════════════════════════════════════════════════════
-  //  STATUS BANNER (centered)
-  // ═══════════════════════════════════════════════════════════
-
-  const bannerH = 32;
-  rect(M, y - bannerH, W, bannerH, { fill: C.emeraldBg, border: C.emeraldBorder });
-
-  const statusText = "RECORDED — IMMUTABLE";
-  const statusW = bold.widthOfTextAtSize(statusText, 8.5);
-  text(statusText, M + (W - statusW) / 2, y - bannerH + 12, { font: bold, size: 8.5, color: C.emeraldDark });
-
-  y -= bannerH + 28;
-
-  // ═══════════════════════════════════════════════════════════
-  //  DIVIDER
-  // ═══════════════════════════════════════════════════════════
-
-  y = hr(y);
-
-  // ═══════════════════════════════════════════════════════════
-  //  AI TOOL USED
-  // ═══════════════════════════════════════════════════════════
-
-  label("AI Tool Used", M, y);
+  const subtitleText = "This document constitutes a formal governance record for the reliance on AI-generated output. It serves as the official source of truth for internal auditing and regulatory compliance, capturing the intent, risk assessment, and human authorization for the specified workflow.";
+  const subtitleLines = wrap(subtitleText, regular, 8.5, W - 40);
+  for (const line of subtitleLines) {
+    textCentered(line, y, { size: 8.5, color: C.medium });
+    y -= 12;
+  }
   y -= 16;
-  text(record.aiToolUsed, M, y, { font: bold, size: 11, color: C.black });
-  y -= 26;
 
   // ═══════════════════════════════════════════════════════════
-  //  STRUCTURED INPUTS CARD
+  //  2. AI PERMISSION SLIP TABLE
   // ═══════════════════════════════════════════════════════════
+
+  const fieldColW = 150;
+  const detailColW = W - fieldColW;
 
   if (hasNewFields) {
-    // New layout: AI Output Impact (50%), Sensitive Data (25%), Risk Level (25%)
-    const cardPad = 14;
-    const cardInnerH = 36;
-    const cardH = cardInnerH + cardPad * 2;
-    const col0W = W * 0.5;
-    const col1W = W * 0.25;
-    const col2W = W * 0.25;
+    const usageText = record.aiUsageType.length > 0
+      ? record.aiUsageType.map((t: string) => AI_USAGE_TYPE_LABELS[t] ?? t).join(", ")
+        + (record.aiUsageTypeOther ? ` (Other: ${record.aiUsageTypeOther})` : "")
+      : "\u2014";
 
-    rect(M, y - cardH, W, cardH, { fill: C.bg, border: C.rule });
+    const justText = record.aiUseJustification.length > 0
+      ? record.aiUseJustification.map((j: string) => AI_USE_JUSTIFICATION_LABELS[j] ?? j).join(", ")
+        + (record.aiUseJustificationOther ? ` (Other: ${record.aiUseJustificationOther})` : "")
+      : "\u2014";
 
-    const cardTop = y - cardPad;
+    const planText = record.humanReviewPlan.length > 0
+      ? record.humanReviewPlan.map((p: string) => HUMAN_REVIEW_PLAN_LABELS[p] ?? p).join(", ")
+        + (record.humanReviewPlanOther ? ` (Other: ${record.humanReviewPlanOther})` : "")
+      : "\u2014";
 
-    const drawColAt = (colX: number, colWidth: number, labelStr: string, valueStr: string, valueSz: number, valueColor: Color = C.black) => {
-      const colCenter = colX + colWidth / 2;
-
-      const lw = bold.widthOfTextAtSize(labelStr.toUpperCase(), 7);
-      text(labelStr.toUpperCase(), colCenter - lw / 2, cardTop, { font: bold, size: 7, color: C.label });
-
-      const vw = bold.widthOfTextAtSize(valueStr, valueSz);
-      text(valueStr, colCenter - vw / 2, cardTop - 18, { font: bold, size: valueSz, color: valueColor });
-    };
-
-    drawColAt(M, col0W, "AI Output Impact", record.aiOutputImpact ? AI_OUTPUT_IMPACT_LABELS[record.aiOutputImpact] : "—", 10);
-    drawColAt(M + col0W, col1W, "Sensitive Data", record.dataSensitivity ? "Yes" : "No", 9);
-
-    const riskText = record.riskLevel ? RISK_LABELS[record.riskLevel] : "—";
-    const riskColor = record.riskLevel === "LOW"
-      ? C.riskLow
-      : record.riskLevel === "MODERATE"
-        ? C.riskModerate
-        : record.riskLevel === "HIGH"
-          ? C.riskHigh
-          : C.medium;
-    drawColAt(M + col0W + col1W, col2W, "Risk Explanation", riskText, 9, riskColor);
-
-    // Column dividers
-    const dividers = [M + col0W, M + col0W + col1W];
-    for (const dx of dividers) {
-      page.drawLine({
-        start: { x: dx, y: y - cardH + cardPad },
-        end: { x: dx, y: y - cardPad },
-        thickness: 0.5,
-        color: C.rule,
-      });
-    }
-
-    y -= cardH + 24;
-
-    // AI Usage Type
-    if (record.aiUsageType.length > 0) {
-      label("AI Usage Type", M, y);
-      y -= 16;
-      const usageText = record.aiUsageType
-        .map((t: string) => AI_USAGE_TYPE_LABELS[t] ?? t)
-        .join(", ");
-      const usageLines = wrap(usageText, regular, 9.5, W);
-      for (const line of usageLines) {
-        text(line, M, y, { size: 9.5, color: C.body });
-        y -= 13;
-      }
-      if (record.aiUsageTypeOther) {
-        text(`Other: ${record.aiUsageTypeOther}`, M, y, { size: 9, color: C.medium });
-        y -= 13;
-      }
-      y -= 10;
-    }
-
-    // Human Review Plan
-    if (record.humanReviewPlan.length > 0) {
-      ensureSpace(60);
-      label("Human Oversight Plan", M, y);
-      y -= 16;
-      const planText = record.humanReviewPlan
-        .map((p: string) => HUMAN_REVIEW_PLAN_LABELS[p] ?? p)
-        .join(", ");
-      const planLines = wrap(planText, regular, 9.5, W);
-      for (const line of planLines) {
-        text(line, M, y, { size: 9.5, color: C.body });
-        y -= 13;
-      }
-      if (record.humanReviewPlanOther) {
-        text(`Other: ${record.humanReviewPlanOther}`, M, y, { size: 9, color: C.medium });
-        y -= 13;
-      }
-      y -= 10;
-    }
-
-    // AI Use Justification
-    if (record.aiUseJustification.length > 0) {
-      ensureSpace(60);
-      label("AI Use Justification", M, y);
-      y -= 16;
-      const justText = record.aiUseJustification
-        .map((j: string) => AI_USE_JUSTIFICATION_LABELS[j] ?? j)
-        .join(", ");
-      const justLines = wrap(justText, regular, 9.5, W);
-      for (const line of justLines) {
-        text(line, M, y, { size: 9.5, color: C.body });
-        y -= 13;
-      }
-      if (record.aiUseJustificationOther) {
-        text(`Other: ${record.aiUseJustificationOther}`, M, y, { size: 9, color: C.medium });
-        y -= 13;
-      }
-      y -= 10;
-    }
+    drawTable(
+      [fieldColW, detailColW],
+      ["Field", "Detail"],
+      [
+        ["Record ID", `#${record.id.slice(0, 8).toUpperCase()}`],
+        ["Requestor", record.creator.fullName],
+        ["Submission Date", formatDate(record.submittedAt)],
+        ["AI Tool Used", record.aiToolUsed],
+        ["AI Reliance Type", usageText],
+        ["AI Use Justification", justText],
+        ["AI Output Impact", record.aiOutputImpact ? AI_OUTPUT_IMPACT_LABELS[record.aiOutputImpact] : "\u2014"],
+        ["Sensitive Data Flag", record.dataSensitivity ? "Yes" : "No"],
+        ["Human Review Plan", planText],
+      ],
+      [bold, regular],
+    );
   } else {
-    // Legacy layout: 4-column card
-    const cardPad = 14;
-    const cardInnerH = 36;
-    const cardH = cardInnerH + cardPad * 2;
-    const colW = W / 4;
-
-    rect(M, y - cardH, W, cardH, { fill: C.bg, border: C.rule });
-
-    const cardTop = y - cardPad;
-
-    const drawCol = (col: number, labelStr: string, valueStr: string, valueColor: Color = C.black) => {
-      const colX = M + colW * col;
-      const colCenter = colX + colW / 2;
-
-      const lw = bold.widthOfTextAtSize(labelStr.toUpperCase(), 7);
-      text(labelStr.toUpperCase(), colCenter - lw / 2, cardTop, { font: bold, size: 7, color: C.label });
-
-      const vw = bold.widthOfTextAtSize(valueStr, 10);
-      text(valueStr, colCenter - vw / 2, cardTop - 18, { font: bold, size: 10, color: valueColor });
-    };
-
-    drawCol(0, "Distribution", record.distributionContext ? DISTRIBUTION_LABELS[record.distributionContext] : "—");
-    drawCol(1, "Sensitive Data", record.dataSensitivity ? "Yes" : "No");
-    drawCol(2, "High-Stakes", record.highStakesDecision ? "Yes" : "No");
-
-    const riskText = record.riskLevel ? RISK_LABELS[record.riskLevel] : "—";
-    const riskColor = record.riskLevel === "LOW"
-      ? C.riskLow
-      : record.riskLevel === "MODERATE"
-        ? C.riskModerate
-        : record.riskLevel === "HIGH"
-          ? C.riskHigh
-          : C.medium;
-    drawCol(3, "Risk Explanation", riskText, riskColor);
-
-    for (let i = 1; i < 4; i++) {
-      const dx = M + colW * i;
-      page.drawLine({
-        start: { x: dx, y: y - cardH + cardPad },
-        end: { x: dx, y: y - cardPad },
-        thickness: 0.5,
-        color: C.rule,
-      });
-    }
-
-    y -= cardH + 24;
+    drawTable(
+      [fieldColW, detailColW],
+      ["Field", "Detail"],
+      [
+        ["Record ID", `#${record.id.slice(0, 8).toUpperCase()}`],
+        ["Requestor", record.creator.fullName],
+        ["Submission Date", formatDate(record.submittedAt)],
+        ["AI Tool Used", record.aiToolUsed],
+        ["Distribution", record.distributionContext ? DISTRIBUTION_LABELS[record.distributionContext] : "\u2014"],
+        ["Sensitive Data", record.dataSensitivity ? "Yes" : "No"],
+        ["High-Stakes Decision", record.highStakesDecision ? "Yes" : "No"],
+        ["AI Justification", record.aiJustification ?? "\u2014"],
+      ],
+      [bold, regular],
+    );
   }
 
+  y -= 24;
+
   // ═══════════════════════════════════════════════════════════
-  //  AI JUSTIFICATION (legacy, if present)
+  //  3. RISK EXPLANATION
   // ═══════════════════════════════════════════════════════════
 
-  if (record.aiJustification && !hasNewFields) {
-    label("AI Justification", M, y);
-    y -= 16;
+  ensureSpace(120);
+  text("Risk Explanation", M, y, { font: bold, size: 11, color: C.black });
+  y -= 16;
 
-    const justifLines = wrap(record.aiJustification, regular, 9.5, W - 24);
-    const justifBlockH = justifLines.length * 14 + 20;
+  const riskIntro = "The risk classification for this record is determined by a deterministic logic framework that evaluates the intended impact of the AI output and the presence of sensitive or regulated data.";
+  const riskIntroLines = wrap(riskIntro, regular, 8.5, W);
+  for (const line of riskIntroLines) {
+    text(line, M, y, { size: 8.5, color: C.medium });
+    y -= 12;
+  }
+  y -= 8;
 
-    rect(M, y - justifBlockH + 4, W, justifBlockH, { fill: C.bg, border: C.rule });
+  // Risk Classification
+  const riskText = record.riskLevel ? RISK_LABELS[record.riskLevel] : "\u2014";
+  const riskColor = record.riskLevel === "LOW"
+    ? C.riskLow
+    : record.riskLevel === "MODERATE"
+      ? C.riskModerate
+      : record.riskLevel === "HIGH"
+        ? C.riskHigh
+        : C.medium;
 
-    let justifLineY = y - 6;
-    for (const line of justifLines) {
-      text(line, M + 12, justifLineY, { size: 9.5, color: C.medium });
-      justifLineY -= 14;
+  text("Risk Classification:", M, y, { font: bold, size: 9.5, color: C.dark });
+  const riskLabelW = bold.widthOfTextAtSize("Risk Classification: ", 9.5);
+  text(riskText, M + riskLabelW, y, { font: bold, size: 9.5, color: riskColor });
+  y -= 18;
+
+  // Logic Rationale
+  if (record.riskJustification) {
+    text("Logic Rationale:", M, y, { font: bold, size: 9.5, color: C.dark });
+    y -= 14;
+    const ratLines = wrap(record.riskJustification, regular, 9, W - 12);
+    for (const line of ratLines) {
+      text(line, M + 6, y, { size: 9, color: C.body });
+      y -= 12;
     }
-
-    y -= justifBlockH + 20;
+    y -= 6;
   }
 
-  // ═══════════════════════════════════════════════════════════
-  //  AI SUMMARY (if present)
-  // ═══════════════════════════════════════════════════════════
-
+  // AI Risk Explanation (if aiSummary exists)
   if (record.aiSummary) {
     ensureSpace(80);
-    label("Risk Explanation", M, y);
-    y -= 16;
-
-    const summaryLines = wrap(record.aiSummary, regular, 9.5, W - 24);
-    const summaryBlockH = summaryLines.length * 14 + 20;
-
-    rect(M, y - summaryBlockH + 4, W, summaryBlockH, { fill: C.brandBg, border: C.brandBorder });
-
-    let summaryLineY = y - 10;
-    for (const line of summaryLines) {
-      text(line, M + 12, summaryLineY, { size: 9.5, color: C.medium });
-      summaryLineY -= 14;
-    }
-
-    y -= summaryBlockH + 20;
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  //  RISK ASSESSMENT (if present)
-  // ═══════════════════════════════════════════════════════════
-
-  if (record.riskJustification) {
-    ensureSpace(80);
-    label("Risk Assessment", M, y);
-    y -= 16;
-
-    const justLines = wrap(record.riskJustification, regular, 9.5, W - 24);
-    const blockH = justLines.length * 14 + 24;
-
-    rect(M, y - blockH + 4, W, blockH, { fill: C.bg, border: C.rule });
-
-    let lineY = y - 12;
-    for (const line of justLines) {
-      text(line, M + 12, lineY, { size: 9.5, color: C.medium });
-      lineY -= 14;
-    }
-
-    y -= blockH + 20;
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  //  REVIEW COMMENT (if present)
-  // ═══════════════════════════════════════════════════════════
-
-  if (record.reviewComment) {
-    ensureSpace(80);
-    label("Reviewer Rationale / Note", M, y);
-    y -= 16;
-
-    const commentLines = wrap(`"${record.reviewComment}"`, regular, 9.5, W - 24);
-    const blockH = commentLines.length * 14 + 24;
-
-    rect(M, y - blockH + 4, W, blockH, { fill: C.bg, border: C.rule });
-
-    let lineY = y - 12;
-    for (const line of commentLines) {
-      text(line, M + 12, lineY, { size: 9.5, color: C.medium });
-      lineY -= 14;
-    }
-
-    y -= blockH + 4;
-
-    if (record.reviewer) {
-      text(`— ${record.reviewer.fullName}`, M + 12, y, { size: 8, color: C.light });
-      y -= 22;
-    } else {
-      y -= 16;
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  //  AUTHORIZATION DETAILS
-  // ═══════════════════════════════════════════════════════════
-
-  {
-    ensureSpace(120);
-    const isAutoApproved = !record.reviewer;
-
-    // Authorization banner
-    const authBannerH = 28;
-    rect(M, y - authBannerH, W, authBannerH, { fill: C.emeraldBg, border: C.emeraldBorder });
-    const authText = "AUTHORIZED FOR AI RELIANCE";
-    const authW = bold.widthOfTextAtSize(authText, 8);
-    text(authText, M + (W - authW) / 2, y - authBannerH + 10, { font: bold, size: 8, color: C.emeraldDark });
-    y -= authBannerH + 16;
-
-    // 2-column: Authorized By + Authorization Date
-    const halfW = W / 2;
-    label("Authorized By", M, y);
-    label("Authorization Date", M + halfW, y);
+    y -= 6;
+    text("AI Risk Explanation:", M, y, { font: bold, size: 9.5, color: C.dark });
     y -= 14;
-    text(isAutoApproved ? "Auto-authorized (Low Risk)" : record.reviewer!.fullName, M, y, { font: bold, size: 9, color: C.black });
-    text(formatDate(record.approvedAt), M + halfW, y, { font: bold, size: 9, color: C.black });
-    y -= 20;
-
-    // Decision Rationale
-    if (record.reviewerDecisionRationale) {
-      label("Decision Rationale", M, y);
-      y -= 14;
-      const ratText = REVIEWER_DECISION_RATIONALE_LABELS[record.reviewerDecisionRationale] ?? record.reviewerDecisionRationale;
-      text(ratText, M, y, { size: 9.5, color: C.body });
-      y -= 13;
-      if (record.reviewerDecisionRationaleOther) {
-        text(record.reviewerDecisionRationaleOther, M, y, { size: 9, color: C.medium });
-        y -= 13;
-      }
-      y -= 6;
-    } else if (isAutoApproved) {
-      label("Decision Rationale", M, y);
-      y -= 14;
-      text("Auto-authorized — Low risk classification", M, y, { size: 9.5, color: C.medium });
-      y -= 20;
+    const summaryLines = wrap(record.aiSummary, regular, 9, W - 12);
+    for (const line of summaryLines) {
+      text(line, M + 6, y, { size: 9, color: C.body });
+      y -= 12;
     }
-
-    // Validation Reference
-    if (record.reviewerValidationReference.length > 0) {
-      label("Validation Reference", M, y);
-      y -= 14;
-      const valText = record.reviewerValidationReference
-        .map((v: string) => REVIEWER_VALIDATION_REFERENCE_LABELS[v] ?? v)
-        .join(", ");
-      const valLines = wrap(valText, regular, 9.5, W);
-      for (const line of valLines) {
-        text(line, M, y, { size: 9.5, color: C.body });
-        y -= 13;
-      }
-      if (record.reviewerValidationReferenceOther) {
-        text(`Other: ${record.reviewerValidationReferenceOther}`, M, y, { size: 9, color: C.medium });
-        y -= 13;
-      }
-      y -= 6;
-    }
-
-    y -= 10;
+    y -= 6;
   }
 
-  // ═══════════════════════════════════════════════════════════
-  //  DIVIDER
-  // ═══════════════════════════════════════════════════════════
-
-  ensureSpace(100);
-  y = hr(y);
+  y -= 16;
 
   // ═══════════════════════════════════════════════════════════
-  //  FOOTER — People & Dates (3 columns, centered within each)
+  //  4. AUTHORIZATION DECISION
   // ═══════════════════════════════════════════════════════════
 
-  const footColW = W / 3;
+  ensureSpace(140);
+  text("Authorization Decision", M, y, { font: bold, size: 11, color: C.black });
+  y -= 16;
 
-  const drawFootCol = (col: number, labelStr: string, valueStr: string) => {
-    const colX = M + footColW * col;
-    const colCenter = colX + footColW / 2;
+  const authIntro = "This section records the explicit human-in-the-loop checkpoint where reliance on the AI output was formally authorized.";
+  const authIntroLines = wrap(authIntro, regular, 8.5, W);
+  for (const line of authIntroLines) {
+    text(line, M, y, { size: 8.5, color: C.medium });
+    y -= 12;
+  }
+  y -= 8;
 
-    const lw = bold.widthOfTextAtSize(labelStr.toUpperCase(), 7);
-    text(labelStr.toUpperCase(), colCenter - lw / 2, y, { font: bold, size: 7, color: C.label });
+  const isAutoApproved = !record.reviewer;
 
-    const vw = bold.widthOfTextAtSize(valueStr, 9);
-    text(valueStr, colCenter - vw / 2, y - 16, { font: bold, size: 9, color: C.black });
-  };
+  // Authorization Status
+  text("Authorization Status:", M, y, { font: bold, size: 9.5, color: C.dark });
+  const statusLabelW = bold.widthOfTextAtSize("Authorization Status: ", 9.5);
+  text("AUTHORIZED FOR AI RELIANCE", M + statusLabelW, y, { font: bold, size: 9.5, color: C.emerald });
+  y -= 18;
 
-  drawFootCol(0, "Created By", record.creator.fullName);
-  drawFootCol(1, "Reviewed By", record.reviewer?.fullName ?? "Auto-authorized");
-  drawFootCol(2, "Recorded", formatDate(record.recordedAt));
+  // Authorized By
+  text("Authorized By:", M, y, { font: bold, size: 9.5, color: C.dark });
+  const authByLabelW = bold.widthOfTextAtSize("Authorized By: ", 9.5);
+  text(
+    isAutoApproved ? "Auto-authorized (Low Risk)" : record.reviewer!.fullName,
+    M + authByLabelW, y, { size: 9.5, color: C.body },
+  );
+  y -= 18;
 
-  y -= 48;
+  // Decision Rationale
+  if (record.reviewerDecisionRationale) {
+    text("Decision Rationale:", M, y, { font: bold, size: 9.5, color: C.dark });
+    y -= 14;
+    const ratText = REVIEWER_DECISION_RATIONALE_LABELS[record.reviewerDecisionRationale] ?? record.reviewerDecisionRationale;
+    const fullRatText = ratText + (record.reviewerDecisionRationaleOther ? ` \u2014 ${record.reviewerDecisionRationaleOther}` : "");
+    const ratLines = wrap(fullRatText, regular, 9, W - 12);
+    for (const line of ratLines) {
+      text(line, M + 6, y, { size: 9, color: C.body });
+      y -= 12;
+    }
+    y -= 4;
+  } else if (isAutoApproved) {
+    text("Decision Rationale:", M, y, { font: bold, size: 9.5, color: C.dark });
+    y -= 14;
+    text("Auto-authorized \u2014 Low risk classification", M + 6, y, { size: 9, color: C.medium });
+    y -= 16;
+  }
+
+  // Validation Reference
+  if (record.reviewerValidationReference.length > 0) {
+    text("Validation Reference:", M, y, { font: bold, size: 9.5, color: C.dark });
+    y -= 14;
+    const valText = record.reviewerValidationReference
+      .map((v: string) => REVIEWER_VALIDATION_REFERENCE_LABELS[v] ?? v)
+      .join(", ")
+      + (record.reviewerValidationReferenceOther ? ` (Other: ${record.reviewerValidationReferenceOther})` : "");
+    const valLines = wrap(valText, regular, 9, W - 12);
+    for (const line of valLines) {
+      text(line, M + 6, y, { size: 9, color: C.body });
+      y -= 12;
+    }
+    y -= 4;
+  }
+
+  // Reviewer Note
+  if (record.reviewComment) {
+    text("Reviewer Note:", M, y, { font: bold, size: 9.5, color: C.dark });
+    y -= 14;
+    const noteLines = wrap(`\u201C${record.reviewComment}\u201D`, regular, 9, W - 12);
+    for (const line of noteLines) {
+      text(line, M + 6, y, { size: 9, color: C.body });
+      y -= 12;
+    }
+    y -= 4;
+  }
+
+  // Authorization Timestamp
+  text("Authorization Timestamp:", M, y, { font: bold, size: 9.5, color: C.dark });
+  const tsLabelW = bold.widthOfTextAtSize("Authorization Timestamp: ", 9.5);
+  text(formatDate(record.approvedAt), M + tsLabelW, y, { size: 9.5, color: C.body });
+  y -= 24;
+
+  // ═══════════════════════════════════════════════════════════
+  //  5. TIMELINE / AUDIT TABLE
+  // ═══════════════════════════════════════════════════════════
+
+  ensureSpace(120);
+  text("Timeline / Audit", M, y, { font: bold, size: 11, color: C.black });
+  y -= 16;
+
+  const timelineIntro = "This audit trail creates an immutable record of the governance chain, ensuring that the transition from intent to reliance was subject to the required controls.";
+  const timelineIntroLines = wrap(timelineIntro, regular, 8.5, W);
+  for (const line of timelineIntroLines) {
+    text(line, M, y, { size: 8.5, color: C.medium });
+    y -= 12;
+  }
+  y -= 8;
+
+  const timelineRows: string[][] = [
+    ["DRAFT", "Initial capture of intent and justification", formatDate(record.createdAt), record.creator.fullName],
+    ["SUBMITTED", "Submission for risk assessment and review", formatDate(record.submittedAt), record.creator.fullName],
+  ];
+
+  if (!isAutoApproved) {
+    timelineRows.push(
+      ["REVIEWED", "Risk determination and reviewer assessment", formatDate(record.approvedAt), record.reviewer!.fullName],
+    );
+  }
+
+  timelineRows.push(
+    ["AUTHORIZED", "Explicit authorization of AI reliance", formatDate(record.approvedAt), isAutoApproved ? "SYSTEM" : record.reviewer!.fullName],
+    ["RECORDED", "Record locked as an immutable audit artifact", formatDate(record.recordedAt), "SYSTEM"],
+  );
+
+  const eventColW = 80;
+  const tsColW = 100;
+  const userColW = 110;
+  const actionColW = W - eventColW - tsColW - userColW;
+
+  drawTable(
+    [eventColW, actionColW, tsColW, userColW],
+    ["Event", "Action", "Timestamp", "User"],
+    timelineRows,
+  );
+
+  y -= 24;
+
+  // ═══════════════════════════════════════════════════════════
+  //  6. COMPLIANCE CERTIFICATION
+  // ═══════════════════════════════════════════════════════════
+
+  ensureSpace(80);
+  text("Compliance Certification", M, y, { font: bold, size: 11, color: C.black });
+  y -= 16;
+
+  const certText = "I confirm that the appropriate human oversight has occurred before authorizing reliance on AI output, and that this record accurately reflects the governance process applied to the task.";
+  const certLines = wrap(certText, regular, 9, W);
+  for (const line of certLines) {
+    text(line, M, y, { size: 9, color: C.body });
+    y -= 12;
+  }
 
   // ═══════════════════════════════════════════════════════════
   //  WATERMARK (bottom center)

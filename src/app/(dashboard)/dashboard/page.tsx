@@ -126,7 +126,7 @@ export default async function DashboardPage() {
                 <Link href="/permission-slips/new" className="mt-4">
                   <Button size="sm">
                     <Plus className="h-4 w-4" />
-                    New Authorization Request
+                    Create AI Permission Slip
                   </Button>
                 </Link>
               </div>
@@ -203,8 +203,8 @@ export default async function DashboardPage() {
                 <Card className="flex items-center gap-3 py-3 px-4 transition-all duration-150 hover:shadow-md hover:border-border-strong">
                   <Plus className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-on-surface">New Authorization Request</p>
-                    <p className="text-xs text-on-surface-quaternary">Create AI Permission Slip</p>
+                    <p className="text-sm font-medium text-on-surface">Create AI Permission Slip</p>
+                    <p className="text-xs text-on-surface-quaternary">Submit AI Authorization Request</p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-on-surface-quaternary transition-transform group-hover:translate-x-0.5" />
                 </Card>

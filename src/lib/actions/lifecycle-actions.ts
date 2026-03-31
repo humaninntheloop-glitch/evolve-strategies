@@ -305,6 +305,10 @@ export async function approveRecord(
   return { success: true, data: undefined };
 }
 
+export async function finalizeRecord(recordId: string): Promise<ActionResult> {
+  return performTransition(recordId, "RECORDED");
+}
+
 export async function rejectRecord(
   recordId: string,
   options: {
