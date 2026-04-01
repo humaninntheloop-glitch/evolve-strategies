@@ -25,7 +25,7 @@ const TRANSITION_RULES: TransitionRule[] = [
   {
     from: "DRAFT",
     to: "SUBMITTED",
-    allowedRoles: ["EMPLOYEE", "ADMIN"],
+    allowedRoles: ["EMPLOYEE", "REVIEWER", "ADMIN"],
     condition: (ctx) => {
       if (ctx.actorId !== ctx.creatorId) {
         return { allowed: false, reason: "Only the creator can submit their own permission slip" };
