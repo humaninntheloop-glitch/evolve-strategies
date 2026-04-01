@@ -31,6 +31,7 @@ export interface RecordWithRelations {
   reviewerId: string | null;
   intendedUseDescription: string | null;
   aiToolUsed: string;
+  aiToolUsedOther: string | null;
   distributionContext: DistributionContext | null;
   dataSensitivity: boolean;
   highStakesDecision: boolean | null;
@@ -46,6 +47,10 @@ export interface RecordWithRelations {
   reviewerDecisionRationaleOther: string | null;
   reviewerValidationReference: string[];
   reviewerValidationReferenceOther: string | null;
+  attachmentPath: string | null;
+  attachmentName: string | null;
+  attachmentSize: number | null;
+  attachmentType: string | null;
   aiSummary: string | null;
   riskLevel: RiskLevel | null;
   riskJustification: string | null;
@@ -111,6 +116,23 @@ export const AI_OUTPUT_IMPACT_LABELS: Record<AiOutputImpact, string> = {
   EXTERNAL_REPORTS: "External Reports / Deliverables",
   FINANCIAL_LEGAL: "Financial / Legal Decisions",
   REGULATORY_COMPLIANCE: "Regulatory / Compliance / Contractual",
+};
+
+export const AI_TOOL_OPTIONS = [
+  { value: "CHATGPT", label: "ChatGPT" },
+  { value: "MICROSOFT_COPILOT", label: "Microsoft Copilot" },
+  { value: "GOOGLE_GEMINI", label: "Google Gemini" },
+  { value: "CLAUDE", label: "Claude" },
+  { value: "INTERNAL_AI_TOOL", label: "Internal AI Tool" },
+] as const;
+
+export const AI_TOOL_LABELS: Record<string, string> = {
+  CHATGPT: "ChatGPT",
+  MICROSOFT_COPILOT: "Microsoft Copilot",
+  GOOGLE_GEMINI: "Google Gemini",
+  CLAUDE: "Claude",
+  INTERNAL_AI_TOOL: "Internal AI Tool",
+  OTHER: "Other",
 };
 
 export const AI_USAGE_TYPE_OPTIONS = [

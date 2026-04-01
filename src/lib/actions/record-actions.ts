@@ -33,6 +33,7 @@ export async function createRecord(formData: FormData): Promise<ActionResult<{ i
 
   const raw = {
     aiToolUsed: formData.get("aiToolUsed") as string,
+    aiToolUsedOther: (formData.get("aiToolUsedOther") as string) || undefined,
     aiOutputImpact: formData.get("aiOutputImpact") as string,
     dataSensitivity: formData.get("dataSensitivity") as string,
     aiUsageType: formData.getAll("aiUsageType") as string[],
@@ -56,6 +57,7 @@ export async function createRecord(formData: FormData): Promise<ActionResult<{ i
         organizationId: user.organizationId,
         creatorId: user.id,
         aiToolUsed: parsed.data.aiToolUsed,
+        aiToolUsedOther: parsed.data.aiToolUsed === "OTHER" ? (parsed.data.aiToolUsedOther ?? null) : null,
         aiOutputImpact: impact,
         dataSensitivity: parsed.data.dataSensitivity,
         aiUsageType: parsed.data.aiUsageType,
@@ -80,9 +82,8 @@ export async function createRecord(formData: FormData): Promise<ActionResult<{ i
     });
 
     revalidatePath("/permission-slips");
-    redirect(`/permission-slips/${record.id}`);
+    return { success: true, data: { id: record.id } };
   } catch (error) {
-    if (isRedirectError(error)) throw error;
     return { success: false, error: handleActionError(error) };
   }
 }
@@ -112,6 +113,7 @@ export async function updateRecord(
 
   const raw = {
     aiToolUsed: formData.get("aiToolUsed") as string,
+    aiToolUsedOther: (formData.get("aiToolUsedOther") as string) || undefined,
     aiOutputImpact: formData.get("aiOutputImpact") as string,
     dataSensitivity: formData.get("dataSensitivity") as string,
     aiUsageType: formData.getAll("aiUsageType") as string[],
@@ -139,6 +141,7 @@ export async function updateRecord(
     }
 
     // Handle nullable fields
+    updateData.aiToolUsedOther = parsed.data.aiToolUsed === "OTHER" ? (parsed.data.aiToolUsedOther ?? null) : null;
     updateData.aiUsageTypeOther = parsed.data.aiUsageTypeOther ?? null;
     updateData.humanReviewPlanOther = parsed.data.humanReviewPlanOther ?? null;
     updateData.aiUseJustificationOther = parsed.data.aiUseJustificationOther ?? null;

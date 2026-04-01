@@ -2,10 +2,11 @@ import { z } from "zod";
 
 export const createRecordSchema = z
   .object({
-    aiToolUsed: z
-      .string()
-      .min(1, "AI tool name is required")
-      .max(200, "AI tool name must be under 200 characters"),
+    aiToolUsed: z.enum(
+      ["CHATGPT", "MICROSOFT_COPILOT", "GOOGLE_GEMINI", "CLAUDE", "INTERNAL_AI_TOOL", "OTHER"],
+      { message: "Please select an AI tool" }
+    ),
+    aiToolUsedOther: z.string().max(200).optional(),
     aiOutputImpact: z.enum(
       [
         "INTERNAL_NOTES",
@@ -51,15 +52,20 @@ export const createRecordSchema = z
       !data.aiUseJustification.includes("OTHER") ||
       (data.aiUseJustificationOther && data.aiUseJustificationOther.trim().length > 0),
     { message: "Please specify the other justification", path: ["aiUseJustificationOther"] }
+  )
+  .refine(
+    (data) =>
+      data.aiToolUsed !== "OTHER" ||
+      (data.aiToolUsedOther && data.aiToolUsedOther.trim().length > 0),
+    { message: "Please specify the AI tool", path: ["aiToolUsedOther"] }
   );
 
 export const updateRecordSchema = z
   .object({
     aiToolUsed: z
-      .string()
-      .min(1, "AI tool name is required")
-      .max(200, "AI tool name must be under 200 characters")
+      .enum(["CHATGPT", "MICROSOFT_COPILOT", "GOOGLE_GEMINI", "CLAUDE", "INTERNAL_AI_TOOL", "OTHER"])
       .optional(),
+    aiToolUsedOther: z.string().max(200).optional(),
     aiOutputImpact: z
       .enum([
         "INTERNAL_NOTES",
@@ -99,6 +105,12 @@ export const updateRecordSchema = z
       !data.aiUseJustification?.includes("OTHER") ||
       (data.aiUseJustificationOther && data.aiUseJustificationOther.trim().length > 0),
     { message: "Please specify the other justification", path: ["aiUseJustificationOther"] }
+  )
+  .refine(
+    (data) =>
+      data.aiToolUsed !== "OTHER" ||
+      (data.aiToolUsedOther && data.aiToolUsedOther.trim().length > 0),
+    { message: "Please specify the AI tool", path: ["aiToolUsedOther"] }
   );
 
 export const reviewCommentSchema = z.object({

@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 import { requireAuth } from "@/lib/dal/auth";
 import { getRecordById } from "@/lib/dal/records";
 import {
+  AI_TOOL_LABELS,
   AI_OUTPUT_IMPACT_LABELS,
   AI_USAGE_TYPE_LABELS,
   HUMAN_REVIEW_PLAN_LABELS,
@@ -308,36 +309,46 @@ async function generateSlipPdf(
         + (record.humanReviewPlanOther ? ` (Other: ${record.humanReviewPlanOther})` : "")
       : "\u2014";
 
+    const newFieldsRows: string[][] = [
+      ["Record ID", `#${record.id.slice(0, 8).toUpperCase()}`],
+      ["Requestor", record.creator.fullName],
+      ["Submission Date", formatDate(record.submittedAt)],
+      ["AI Tool Used", (AI_TOOL_LABELS[record.aiToolUsed] ?? record.aiToolUsed) + (record.aiToolUsedOther ? ` — ${record.aiToolUsedOther}` : "")],
+      ["AI Reliance Type", usageText],
+      ["AI Use Justification", justText],
+      ["AI Output Impact", record.aiOutputImpact ? AI_OUTPUT_IMPACT_LABELS[record.aiOutputImpact] : "\u2014"],
+      ["Sensitive Data Flag", record.dataSensitivity ? "Yes" : "No"],
+      ["Human Review Plan", planText],
+    ];
+    if (record.attachmentName) {
+      newFieldsRows.push(["Supporting Document", record.attachmentName]);
+    }
+
     drawTable(
       [fieldColW, detailColW],
       ["Field", "Detail"],
-      [
-        ["Record ID", `#${record.id.slice(0, 8).toUpperCase()}`],
-        ["Requestor", record.creator.fullName],
-        ["Submission Date", formatDate(record.submittedAt)],
-        ["AI Tool Used", record.aiToolUsed],
-        ["AI Reliance Type", usageText],
-        ["AI Use Justification", justText],
-        ["AI Output Impact", record.aiOutputImpact ? AI_OUTPUT_IMPACT_LABELS[record.aiOutputImpact] : "\u2014"],
-        ["Sensitive Data Flag", record.dataSensitivity ? "Yes" : "No"],
-        ["Human Review Plan", planText],
-      ],
+      newFieldsRows,
       [bold, regular],
     );
   } else {
+    const legacyRows: string[][] = [
+      ["Record ID", `#${record.id.slice(0, 8).toUpperCase()}`],
+      ["Requestor", record.creator.fullName],
+      ["Submission Date", formatDate(record.submittedAt)],
+      ["AI Tool Used", (AI_TOOL_LABELS[record.aiToolUsed] ?? record.aiToolUsed) + (record.aiToolUsedOther ? ` — ${record.aiToolUsedOther}` : "")],
+      ["Distribution", record.distributionContext ? DISTRIBUTION_LABELS[record.distributionContext] : "\u2014"],
+      ["Sensitive Data", record.dataSensitivity ? "Yes" : "No"],
+      ["High-Stakes Decision", record.highStakesDecision ? "Yes" : "No"],
+      ["AI Justification", record.aiJustification ?? "\u2014"],
+    ];
+    if (record.attachmentName) {
+      legacyRows.push(["Supporting Document", record.attachmentName]);
+    }
+
     drawTable(
       [fieldColW, detailColW],
       ["Field", "Detail"],
-      [
-        ["Record ID", `#${record.id.slice(0, 8).toUpperCase()}`],
-        ["Requestor", record.creator.fullName],
-        ["Submission Date", formatDate(record.submittedAt)],
-        ["AI Tool Used", record.aiToolUsed],
-        ["Distribution", record.distributionContext ? DISTRIBUTION_LABELS[record.distributionContext] : "\u2014"],
-        ["Sensitive Data", record.dataSensitivity ? "Yes" : "No"],
-        ["High-Stakes Decision", record.highStakesDecision ? "Yes" : "No"],
-        ["AI Justification", record.aiJustification ?? "\u2014"],
-      ],
+      legacyRows,
       [bold, regular],
     );
   }

@@ -10,6 +10,7 @@ import { RiskBadge } from "./risk-badge";
 import { RecordTimeline } from "./record-timeline";
 import { formatDate, cn } from "@/lib/utils";
 import {
+  AI_TOOL_LABELS,
   AI_OUTPUT_IMPACT_LABELS,
   AI_USAGE_TYPE_LABELS,
   HUMAN_REVIEW_PLAN_LABELS,
@@ -192,7 +193,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold tracking-tight text-on-surface">{record.aiToolUsed}</h1>
+            <h1 className="text-xl font-bold tracking-tight text-on-surface">{AI_TOOL_LABELS[record.aiToolUsed] ?? record.aiToolUsed}</h1>
             <LifecycleBadge status={record.status} />
           </div>
           <p className="mt-1.5 text-sm text-on-surface-secondary">
@@ -381,7 +382,12 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             <div className="mt-5 space-y-5">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Tool</p>
-                <p className="mt-1.5 text-sm font-medium text-on-surface">{record.aiToolUsed}</p>
+                <p className="mt-1.5 text-sm font-medium text-on-surface">
+                  {AI_TOOL_LABELS[record.aiToolUsed] ?? record.aiToolUsed}
+                  {record.aiToolUsedOther && (
+                    <span className="text-on-surface-secondary font-normal"> — {record.aiToolUsedOther}</span>
+                  )}
+                </p>
               </div>
 
               {/* New structured fields */}
@@ -499,6 +505,35 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
                     </div>
                   </div>
                 </>
+              )}
+
+              {record.attachmentName && (
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Supporting Document</p>
+                  <div className="mt-1.5 flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-inset px-3 py-2.5">
+                    <svg className="h-4 w-4 shrink-0 text-on-surface-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-on-surface truncate">{record.attachmentName}</p>
+                      {record.attachmentSize && (
+                        <p className="text-xs text-on-surface-tertiary">
+                          {record.attachmentSize < 1024 * 1024
+                            ? `${(record.attachmentSize / 1024).toFixed(1)} KB`
+                            : `${(record.attachmentSize / (1024 * 1024)).toFixed(1)} MB`}
+                        </p>
+                      )}
+                    </div>
+                    <a
+                      href={`/api/records/${record.id}/attachment`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"
+                    >
+                      Download
+                    </a>
+                  </div>
+                </div>
               )}
 
               {record.reviewComment && (

@@ -85,6 +85,7 @@ model Record {
   reviewerId             String?             @map("reviewer_id") @db.Uuid
   intendedUseDescription String?             @map("intended_use_description")
   aiToolUsed             String              @map("ai_tool_used")
+  aiToolUsedOther        String?             @map("ai_tool_used_other")
   distributionContext    DistributionContext? @map("distribution_context")
   dataSensitivity        Boolean             @map("data_sensitivity")
   highStakesDecision     Boolean?            @map("high_stakes_decision")
@@ -100,6 +101,10 @@ model Record {
   reviewerDecisionRationaleOther  String?   @map("reviewer_decision_rationale_other")
   reviewerValidationReference     String[]  @default([]) @map("reviewer_validation_reference") @db.Text
   reviewerValidationReferenceOther String?  @map("reviewer_validation_reference_other")
+  attachmentPath         String?             @map("attachment_path")
+  attachmentName         String?             @map("attachment_name")
+  attachmentSize         Int?                @map("attachment_size")
+  attachmentType         String?             @map("attachment_type")
   aiSummary              String?             @map("ai_summary")
   riskLevel              RiskLevel?          @map("risk_level")
   riskJustification      String?             @map("risk_justification")
