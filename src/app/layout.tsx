@@ -58,8 +58,8 @@ export const metadata: Metadata = {
     images: ["/logo-square.png"],
   },
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-icon.png",
+    icon: "/icon.png",
+    apple: "/icon.png",
   },
   robots: {
     index: true,

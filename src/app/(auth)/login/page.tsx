@@ -6,12 +6,6 @@ import Link from "next/link";
 import { login } from "@/lib/actions/auth-actions";
 import { ArrowRight, SpinnerGap, Eye, EyeSlash, WarningCircle } from "@phosphor-icons/react";
 
-const DEMO_ACCOUNTS = [
-  { email: "admin@vizio.ai", password: "Vizio2026!", label: "Admin", role: "Organization Admin" },
-  { email: "review@vizio.ai", password: "Vizio2026!", label: "Reviewer", role: "AI Reviewer" },
-  { email: "employee@vizio.ai", password: "Vizio2026!", label: "Employee", role: "Employee" },
-];
-
 function LoginForm() {
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
@@ -22,7 +16,6 @@ function LoginForm() {
       : null;
   const [error, setError] = useState<string | null>(authError);
   const [loading, setLoading] = useState(false);
-  const [loadingDemo, setLoadingDemo] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [shakeForm, setShakeForm] = useState(false);
 
@@ -37,21 +30,6 @@ function LoginForm() {
       setShakeForm(true);
       setTimeout(() => setShakeForm(false), 500);
       setLoading(false);
-    }
-  }
-
-  async function handleDemoLogin(account: typeof DEMO_ACCOUNTS[number]) {
-    setLoadingDemo(account.email);
-    setError(null);
-    const formData = new FormData();
-    formData.set("email", account.email);
-    formData.set("password", account.password);
-    const result = await login(formData);
-    if (result && !result.success) {
-      setError(result.error);
-      setShakeForm(true);
-      setTimeout(() => setShakeForm(false), 500);
-      setLoadingDemo(null);
     }
   }
 
@@ -177,34 +155,6 @@ function LoginForm() {
         <ArrowRight className="h-3.5 w-3.5 text-on-surface-quaternary" />
       </Link>
 
-      {/* Demo Accounts */}
-      <div className="mt-8">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="h-px flex-1 bg-border-subtle" />
-          <span className="text-xs text-on-surface-quaternary">Demo Accounts</span>
-          <div className="h-px flex-1 bg-border-subtle" />
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {DEMO_ACCOUNTS.map((account) => (
-            <button
-              key={account.email}
-              type="button"
-              disabled={loading || loadingDemo !== null}
-              onClick={() => handleDemoLogin(account)}
-              className="flex flex-col items-center gap-1 rounded-lg border border-border-default bg-surface px-3 py-3 text-center transition-all duration-150 hover:bg-surface-inset hover:border-border-strong disabled:pointer-events-none disabled:opacity-60"
-            >
-              {loadingDemo === account.email ? (
-                <SpinnerGap className="h-4 w-4 animate-spin text-on-surface-tertiary" />
-              ) : (
-                <>
-                  <span className="text-sm font-medium text-on-surface">{account.label}</span>
-                  <span className="text-[11px] text-on-surface-quaternary">{account.role}</span>
-                </>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

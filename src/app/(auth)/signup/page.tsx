@@ -30,7 +30,7 @@ export default function RequestAccessPage() {
         <Envelope className="h-4 w-4 shrink-0 text-on-surface-quaternary" />
         <div>
           <p className="text-sm font-medium text-on-surface">
-            support@humanintheloop.ai
+            support@humanintheloop.com
           </p>
           <p className="text-xs text-on-surface-quaternary">
             We&apos;ll get back to you within 24 hours
