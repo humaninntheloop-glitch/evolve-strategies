@@ -84,7 +84,7 @@ model Record {
   creatorId              String              @map("creator_id") @db.Uuid
   reviewerId             String?             @map("reviewer_id") @db.Uuid
   intendedUseDescription String?             @map("intended_use_description")
-  aiToolUsed             String              @map("ai_tool_used")
+  aiToolUsed             String[]            @default([]) @map("ai_tool_used") @db.Text
   aiToolUsedOther        String?             @map("ai_tool_used_other")
   distributionContext    DistributionContext? @map("distribution_context")
   dataSensitivity        Boolean             @map("data_sensitivity")

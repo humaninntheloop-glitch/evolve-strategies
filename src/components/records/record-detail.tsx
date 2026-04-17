@@ -16,7 +16,8 @@ import {
   HUMAN_REVIEW_PLAN_LABELS,
   AI_USE_JUSTIFICATION_LABELS,
   REVIEWER_DECISION_RATIONALE_OPTIONS,
-  REVIEWER_DECISION_RATIONALE_LABELS,
+  REJECT_DECISION_RATIONALE_OPTIONS,
+  DECISION_RATIONALE_LABELS,
   REVIEWER_VALIDATION_REFERENCE_OPTIONS,
   REVIEWER_VALIDATION_REFERENCE_LABELS,
   DISTRIBUTION_LABELS,
@@ -193,7 +194,11 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold tracking-tight text-on-surface">{AI_TOOL_LABELS[record.aiToolUsed] ?? record.aiToolUsed}</h1>
+            <h1 className="text-xl font-bold tracking-tight text-on-surface">
+              {record.aiToolUsed.length > 0
+                ? record.aiToolUsed.map((t) => AI_TOOL_LABELS[t] ?? t).join(", ")
+                : "AI Reliance Record"}
+            </h1>
             <LifecycleBadge status={record.status} />
           </div>
           <p className="mt-1.5 text-sm text-on-surface-secondary">
@@ -282,6 +287,16 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
         </Card>
       )}
 
+      {/* Actions — elevated above detail so reviewers can decide without scrolling */}
+      {availableTransitions.length > 0 && (
+        <Card>
+          <CardTitle>Actions</CardTitle>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {availableTransitions.map((t) => renderActions(t))}
+          </div>
+        </Card>
+      )}
+
       {/* AI Summary / Risk Explanation */}
       {record.aiSummary && (
         <Card>
@@ -336,7 +351,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Decision Rationale</p>
                     <p className="mt-1.5 text-sm text-on-surface-secondary">
-                      {REVIEWER_DECISION_RATIONALE_LABELS[record.reviewerDecisionRationale] ?? record.reviewerDecisionRationale}
+                      {DECISION_RATIONALE_LABELS[record.reviewerDecisionRationale] ?? record.reviewerDecisionRationale}
                     </p>
                     {record.reviewerDecisionRationaleOther && (
                       <p className="mt-1 text-sm text-on-surface-tertiary italic">
@@ -381,9 +396,9 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
             <CardTitle>AI Permission Slip</CardTitle>
             <div className="mt-5 space-y-5">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Tool</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">AI Tool(s)</p>
                 <p className="mt-1.5 text-sm font-medium text-on-surface">
-                  {AI_TOOL_LABELS[record.aiToolUsed] ?? record.aiToolUsed}
+                  {record.aiToolUsed.map((t) => AI_TOOL_LABELS[t] ?? t).join(", ")}
                   {record.aiToolUsedOther && (
                     <span className="text-on-surface-secondary font-normal"> — {record.aiToolUsedOther}</span>
                   )}
@@ -566,23 +581,13 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
               <div className="mt-5">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Decision Rationale</p>
                 <p className="mt-1.5 text-sm text-on-surface-secondary">
-                  {REVIEWER_DECISION_RATIONALE_LABELS[record.reviewerDecisionRationale] ?? record.reviewerDecisionRationale}
+                  {DECISION_RATIONALE_LABELS[record.reviewerDecisionRationale] ?? record.reviewerDecisionRationale}
                 </p>
                 {record.reviewerDecisionRationaleOther && (
                   <p className="mt-1 text-sm text-on-surface-tertiary italic">
                     {record.reviewerDecisionRationaleOther}
                   </p>
                 )}
-              </div>
-            </Card>
-          )}
-
-          {/* Actions */}
-          {availableTransitions.length > 0 && (
-            <Card>
-              <CardTitle>Actions</CardTitle>
-              <div className="mt-4 flex flex-wrap gap-3">
-                {availableTransitions.map((t) => renderActions(t))}
               </div>
             </Card>
           )}
@@ -687,14 +692,15 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
       <Dialog open={rejectDialogOpen} onClose={() => setRejectDialogOpen(false)}>
         <DialogTitle>Reject AI Reliance</DialogTitle>
         <DialogDescription>
-          Provide a reason for rejecting this AI reliance request. The requestor will be able to see
-          this feedback and may revise and resubmit.
+          Provide a reason for rejecting this AI reliance request. The requestor will see this
+          feedback and may revise and resubmit.
         </DialogDescription>
         <div className="mt-4 space-y-4">
           <RadioGroup
             label="Decision Rationale"
             description="Why are you rejecting this AI reliance?"
-            options={[...REVIEWER_DECISION_RATIONALE_OPTIONS]}
+            required
+            options={[...REJECT_DECISION_RATIONALE_OPTIONS]}
             value={rejectRationale}
             onChange={setRejectRationale}
             showOther
@@ -703,8 +709,8 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
           />
           <Textarea
             id="rejectComment"
-            label="Comment"
-            placeholder="Reason for rejection..."
+            label="Comment (required)"
+            placeholder="Explain why this AI reliance is being rejected..."
             rows={3}
             value={rejectComment}
             onChange={(e) => setRejectComment(e.target.value)}

@@ -2,10 +2,9 @@ import { z } from "zod";
 
 export const createRecordSchema = z
   .object({
-    aiToolUsed: z.enum(
-      ["CHATGPT", "MICROSOFT_COPILOT", "GOOGLE_GEMINI", "CLAUDE", "INTERNAL_AI_TOOL", "OTHER"],
-      { message: "Please select an AI tool" }
-    ),
+    aiToolUsed: z
+      .array(z.string())
+      .min(1, "Select at least one AI tool"),
     aiToolUsedOther: z.string().max(200).optional(),
     aiOutputImpact: z.enum(
       [
@@ -55,16 +54,14 @@ export const createRecordSchema = z
   )
   .refine(
     (data) =>
-      data.aiToolUsed !== "OTHER" ||
+      !data.aiToolUsed.includes("OTHER") ||
       (data.aiToolUsedOther && data.aiToolUsedOther.trim().length > 0),
-    { message: "Please specify the AI tool", path: ["aiToolUsedOther"] }
+    { message: "Please specify the other AI tool", path: ["aiToolUsedOther"] }
   );
 
 export const updateRecordSchema = z
   .object({
-    aiToolUsed: z
-      .enum(["CHATGPT", "MICROSOFT_COPILOT", "GOOGLE_GEMINI", "CLAUDE", "INTERNAL_AI_TOOL", "OTHER"])
-      .optional(),
+    aiToolUsed: z.array(z.string()).optional(),
     aiToolUsedOther: z.string().max(200).optional(),
     aiOutputImpact: z
       .enum([
@@ -108,9 +105,9 @@ export const updateRecordSchema = z
   )
   .refine(
     (data) =>
-      data.aiToolUsed !== "OTHER" ||
+      !data.aiToolUsed?.includes("OTHER") ||
       (data.aiToolUsedOther && data.aiToolUsedOther.trim().length > 0),
-    { message: "Please specify the AI tool", path: ["aiToolUsedOther"] }
+    { message: "Please specify the other AI tool", path: ["aiToolUsedOther"] }
   );
 
 export const reviewCommentSchema = z.object({
@@ -141,7 +138,24 @@ export const reviewDecisionSchema = z
     { message: "Please specify the other validation reference", path: ["validationReferenceOther"] }
   );
 
+export const rejectDecisionSchema = z
+  .object({
+    comment: z
+      .string()
+      .min(1, "Comment is required when rejecting")
+      .max(2000, "Comment must be under 2000 characters"),
+    decisionRationale: z.string().min(1, "Please select a decision rationale"),
+    decisionRationaleOther: z.string().max(500).optional(),
+  })
+  .refine(
+    (data) =>
+      data.decisionRationale !== "OTHER" ||
+      (data.decisionRationaleOther && data.decisionRationaleOther.trim().length > 0),
+    { message: "Please specify the other rationale", path: ["decisionRationaleOther"] }
+  );
+
 export type CreateRecordInput = z.infer<typeof createRecordSchema>;
 export type UpdateRecordInput = z.infer<typeof updateRecordSchema>;
 export type ReviewCommentInput = z.infer<typeof reviewCommentSchema>;
 export type ReviewDecisionInput = z.infer<typeof reviewDecisionSchema>;
+export type RejectDecisionInput = z.infer<typeof rejectDecisionSchema>;

@@ -113,13 +113,12 @@ export function RecordForm({ record }: RecordFormProps) {
         <div className="rounded-lg border border-border-default p-5 space-y-5">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Section 1 — AI Reliance Details</p>
 
-          <RadioGroup
+          <CheckboxGroup
             name="aiToolUsed"
-            label="AI Tool Used"
-            description="Select the AI tool used for this task."
+            label="AI Tool(s) Used"
+            description="Select all AI tools used for this task."
             options={[...AI_TOOL_OPTIONS]}
-            required
-            defaultValue={record?.aiToolUsed}
+            defaultValues={record?.aiToolUsed ?? []}
             showOther
             otherName="aiToolUsedOther"
             otherDefaultValue={record?.aiToolUsedOther ?? undefined}

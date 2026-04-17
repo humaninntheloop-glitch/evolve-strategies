@@ -8,6 +8,7 @@ import { validateTransition } from "@/lib/lifecycle/state-machine";
 import { classifyRisk } from "@/lib/risk-classification";
 import { generateAiSummary } from "@/lib/ai/summarize";
 import { handleActionError } from "@/lib/errors";
+import { rejectDecisionSchema } from "@/lib/validations/record-schemas";
 import type { ActionResult, RecordStatus } from "@/types";
 
 async function performTransition(
@@ -317,10 +318,15 @@ export async function rejectRecord(
     decisionRationaleOther?: string;
   }
 ): Promise<ActionResult> {
+  const parsed = rejectDecisionSchema.safeParse(options);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
   return performTransition(recordId, "REJECTED", {
-    reviewComment: options.comment,
-    decisionRationale: options.decisionRationale,
-    decisionRationaleOther: options.decisionRationaleOther,
+    reviewComment: parsed.data.comment,
+    decisionRationale: parsed.data.decisionRationale,
+    decisionRationaleOther: parsed.data.decisionRationaleOther,
   });
 }
 

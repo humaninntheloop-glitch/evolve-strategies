@@ -19,6 +19,7 @@ import {
   ClipboardText,
   TrendUp,
 } from "@phosphor-icons/react/ssr";
+import { AI_TOOL_LABELS } from "@/types";
 
 export default async function DashboardPage() {
   const user = await requireAuth();
@@ -142,7 +143,7 @@ export default async function DashboardPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2.5">
                       <p className="truncate text-sm font-medium text-on-surface">
-                        {record.aiToolUsed}
+                        {record.aiToolUsed.map((t) => AI_TOOL_LABELS[t] ?? t).join(", ")}
                       </p>
                       <LifecycleBadge status={record.status} />
                     </div>

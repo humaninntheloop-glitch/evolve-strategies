@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 
 interface SummaryInput {
-  aiToolUsed: string;
+  aiToolUsed: string[];
   aiOutputImpact: string;
   aiUsageType: string[];
   humanReviewPlan: string[];
@@ -26,7 +26,7 @@ export async function generateAiSummary(input: SummaryInput): Promise<string> {
     const prompt = `You are a compliance assistant for an AI governance platform. Given the following AI reliance record, write a 2-4 sentence summary explaining why this record received its risk classification and what a reviewer should pay attention to. Be factual, concise, and professional.
 
 Record details:
-- AI Tool: ${input.aiToolUsed}
+- AI Tools: ${input.aiToolUsed.join(", ") || "Not specified"}
 - AI Output Impact: ${input.aiOutputImpact}
 - AI Usage Types: ${input.aiUsageType.join(", ")}
 - Human Oversight Plan: ${input.humanReviewPlan.join(", ")}

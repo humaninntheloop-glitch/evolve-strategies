@@ -32,7 +32,7 @@ export async function createRecord(formData: FormData): Promise<ActionResult<{ i
   const user = await requireAuth();
 
   const raw = {
-    aiToolUsed: formData.get("aiToolUsed") as string,
+    aiToolUsed: formData.getAll("aiToolUsed") as string[],
     aiToolUsedOther: (formData.get("aiToolUsedOther") as string) || undefined,
     aiOutputImpact: formData.get("aiOutputImpact") as string,
     dataSensitivity: formData.get("dataSensitivity") as string,
@@ -57,7 +57,7 @@ export async function createRecord(formData: FormData): Promise<ActionResult<{ i
         organizationId: user.organizationId,
         creatorId: user.id,
         aiToolUsed: parsed.data.aiToolUsed,
-        aiToolUsedOther: parsed.data.aiToolUsed === "OTHER" ? (parsed.data.aiToolUsedOther ?? null) : null,
+        aiToolUsedOther: parsed.data.aiToolUsed.includes("OTHER") ? (parsed.data.aiToolUsedOther ?? null) : null,
         aiOutputImpact: impact,
         dataSensitivity: parsed.data.dataSensitivity,
         aiUsageType: parsed.data.aiUsageType,
@@ -112,7 +112,7 @@ export async function updateRecord(
   }
 
   const raw = {
-    aiToolUsed: formData.get("aiToolUsed") as string,
+    aiToolUsed: formData.getAll("aiToolUsed") as string[],
     aiToolUsedOther: (formData.get("aiToolUsedOther") as string) || undefined,
     aiOutputImpact: formData.get("aiOutputImpact") as string,
     dataSensitivity: formData.get("dataSensitivity") as string,
@@ -141,7 +141,7 @@ export async function updateRecord(
     }
 
     // Handle nullable fields
-    updateData.aiToolUsedOther = parsed.data.aiToolUsed === "OTHER" ? (parsed.data.aiToolUsedOther ?? null) : null;
+    updateData.aiToolUsedOther = parsed.data.aiToolUsed?.includes("OTHER") ? (parsed.data.aiToolUsedOther ?? null) : null;
     updateData.aiUsageTypeOther = parsed.data.aiUsageTypeOther ?? null;
     updateData.humanReviewPlanOther = parsed.data.humanReviewPlanOther ?? null;
     updateData.aiUseJustificationOther = parsed.data.aiUseJustificationOther ?? null;

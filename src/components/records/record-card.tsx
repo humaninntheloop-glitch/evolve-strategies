@@ -5,7 +5,7 @@ import { RiskBadge } from "./risk-badge";
 import { formatDate } from "@/lib/utils";
 import { ArrowUpRight } from "@phosphor-icons/react/ssr";
 import { cn } from "@/lib/utils";
-import { AI_OUTPUT_IMPACT_LABELS } from "@/types";
+import { AI_OUTPUT_IMPACT_LABELS, AI_TOOL_LABELS } from "@/types";
 import type { RecordWithRelations } from "@/types";
 import type { RecordStatus } from "@/types";
 
@@ -32,7 +32,7 @@ export function RecordCard({ record }: RecordCardProps) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <p className="truncate text-sm font-semibold text-on-surface">
-                {record.aiToolUsed}
+                {record.aiToolUsed.map((t) => AI_TOOL_LABELS[t] ?? t).join(", ")}
               </p>
               <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-on-surface-quaternary opacity-0 transition-opacity group-hover:opacity-100" />
             </div>

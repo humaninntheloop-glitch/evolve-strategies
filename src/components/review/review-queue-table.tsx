@@ -2,7 +2,7 @@ import Link from "next/link";
 import { LifecycleBadge } from "@/components/records/lifecycle-badge";
 import { RiskBadge } from "@/components/records/risk-badge";
 import { formatDate } from "@/lib/utils";
-import { AI_OUTPUT_IMPACT_LABELS, DISTRIBUTION_LABELS } from "@/types";
+import { AI_OUTPUT_IMPACT_LABELS, AI_TOOL_LABELS, DISTRIBUTION_LABELS } from "@/types";
 import type { RecordWithRelations } from "@/types";
 import { ArrowRight, Tray } from "@phosphor-icons/react/ssr";
 
@@ -53,7 +53,9 @@ export function ReviewQueueTable({ records }: ReviewQueueTableProps) {
           {records.map((record) => (
             <tr key={record.id} className="transition-colors duration-150 hover:bg-surface-inset">
               <td className="px-4 py-3.5">
-                <p className="text-sm font-medium text-on-surface">{record.aiToolUsed}</p>
+                <p className="text-sm font-medium text-on-surface">
+                  {record.aiToolUsed.map((t) => AI_TOOL_LABELS[t] ?? t).join(", ")}
+                </p>
                 {record.aiOutputImpact && (
                   <p className="mt-0.5 text-xs text-on-surface-quaternary">
                     {AI_OUTPUT_IMPACT_LABELS[record.aiOutputImpact]}

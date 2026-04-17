@@ -30,7 +30,7 @@ export interface RecordWithRelations {
   creatorId: string;
   reviewerId: string | null;
   intendedUseDescription: string | null;
-  aiToolUsed: string;
+  aiToolUsed: string[];
   aiToolUsedOther: string | null;
   distributionContext: DistributionContext | null;
   dataSensitivity: boolean;
@@ -212,6 +212,31 @@ export const REVIEWER_DECISION_RATIONALE_LABELS: Record<string, string> = {
   ADDITIONAL_SAFEGUARDS: "Additional Safeguards Applied",
   AI_NOT_APPROPRIATE: "AI Reliance Not Appropriate",
   OTHER: "Other",
+};
+
+export const REJECT_DECISION_RATIONALE_OPTIONS = [
+  { value: "AI_NOT_APPROPRIATE", label: "AI reliance is not appropriate for this task" },
+  { value: "INSUFFICIENT_OVERSIGHT", label: "Insufficient human oversight plan" },
+  { value: "OUTPUT_UNVERIFIABLE", label: "Output cannot be adequately verified" },
+  { value: "RISK_TOO_HIGH", label: "Risk level too high for intended use" },
+  { value: "SENSITIVE_DATA_CONCERNS", label: "Sensitive or regulated data concerns" },
+  { value: "INCOMPLETE_JUSTIFICATION", label: "Incomplete or unclear justification" },
+] as const;
+
+export const REJECT_DECISION_RATIONALE_LABELS: Record<string, string> = {
+  AI_NOT_APPROPRIATE: "AI Reliance Not Appropriate",
+  INSUFFICIENT_OVERSIGHT: "Insufficient Oversight Plan",
+  OUTPUT_UNVERIFIABLE: "Output Unverifiable",
+  RISK_TOO_HIGH: "Risk Level Too High",
+  SENSITIVE_DATA_CONCERNS: "Sensitive / Regulated Data Concerns",
+  INCOMPLETE_JUSTIFICATION: "Incomplete Justification",
+  OTHER: "Other",
+};
+
+// Combined lookup for displaying stored rationales (approve or reject).
+export const DECISION_RATIONALE_LABELS: Record<string, string> = {
+  ...REVIEWER_DECISION_RATIONALE_LABELS,
+  ...REJECT_DECISION_RATIONALE_LABELS,
 };
 
 export const REVIEWER_VALIDATION_REFERENCE_OPTIONS = [

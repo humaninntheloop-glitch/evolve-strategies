@@ -11,7 +11,7 @@ import {
   AI_USAGE_TYPE_LABELS,
   HUMAN_REVIEW_PLAN_LABELS,
   AI_USE_JUSTIFICATION_LABELS,
-  REVIEWER_DECISION_RATIONALE_LABELS,
+  DECISION_RATIONALE_LABELS,
   REVIEWER_VALIDATION_REFERENCE_LABELS,
   DISTRIBUTION_LABELS,
   RISK_LABELS,
@@ -313,7 +313,7 @@ async function generateSlipPdf(
       ["Record ID", `#${record.id.slice(0, 8).toUpperCase()}`],
       ["Requestor", record.creator.fullName],
       ["Submission Date", formatDate(record.submittedAt)],
-      ["AI Tool Used", (AI_TOOL_LABELS[record.aiToolUsed] ?? record.aiToolUsed) + (record.aiToolUsedOther ? ` — ${record.aiToolUsedOther}` : "")],
+      ["AI Tool(s) Used", (record.aiToolUsed.length > 0 ? record.aiToolUsed.map((t) => AI_TOOL_LABELS[t] ?? t).join(", ") : "\u2014") + (record.aiToolUsedOther ? ` — ${record.aiToolUsedOther}` : "")],
       ["AI Reliance Type", usageText],
       ["AI Use Justification", justText],
       ["AI Output Impact", record.aiOutputImpact ? AI_OUTPUT_IMPACT_LABELS[record.aiOutputImpact] : "\u2014"],
@@ -335,7 +335,7 @@ async function generateSlipPdf(
       ["Record ID", `#${record.id.slice(0, 8).toUpperCase()}`],
       ["Requestor", record.creator.fullName],
       ["Submission Date", formatDate(record.submittedAt)],
-      ["AI Tool Used", (AI_TOOL_LABELS[record.aiToolUsed] ?? record.aiToolUsed) + (record.aiToolUsedOther ? ` — ${record.aiToolUsedOther}` : "")],
+      ["AI Tool(s) Used", (record.aiToolUsed.length > 0 ? record.aiToolUsed.map((t) => AI_TOOL_LABELS[t] ?? t).join(", ") : "\u2014") + (record.aiToolUsedOther ? ` — ${record.aiToolUsedOther}` : "")],
       ["Distribution", record.distributionContext ? DISTRIBUTION_LABELS[record.distributionContext] : "\u2014"],
       ["Sensitive Data", record.dataSensitivity ? "Yes" : "No"],
       ["High-Stakes Decision", record.highStakesDecision ? "Yes" : "No"],
@@ -451,7 +451,7 @@ async function generateSlipPdf(
   if (record.reviewerDecisionRationale) {
     text("Decision Rationale:", M, y, { font: bold, size: 9.5, color: C.dark });
     y -= 14;
-    const ratText = REVIEWER_DECISION_RATIONALE_LABELS[record.reviewerDecisionRationale] ?? record.reviewerDecisionRationale;
+    const ratText = DECISION_RATIONALE_LABELS[record.reviewerDecisionRationale] ?? record.reviewerDecisionRationale;
     const fullRatText = ratText + (record.reviewerDecisionRationaleOther ? ` \u2014 ${record.reviewerDecisionRationaleOther}` : "");
     const ratLines = wrap(fullRatText, regular, 9, W - 12);
     for (const line of ratLines) {
