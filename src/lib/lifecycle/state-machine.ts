@@ -7,6 +7,7 @@ export interface TransitionContext {
   actorId: string;
   creatorId: string;
   reviewComment?: string;
+  isDemo?: boolean;
 }
 
 export interface TransitionResult {
@@ -38,7 +39,7 @@ const TRANSITION_RULES: TransitionRule[] = [
     to: "APPROVED",
     allowedRoles: ["REVIEWER", "ADMIN"],
     condition: (ctx) => {
-      if (ctx.actorId === ctx.creatorId) {
+      if (!ctx.isDemo && ctx.actorId === ctx.creatorId) {
         return { allowed: false, reason: "Cannot approve your own permission slip" };
       }
       return { allowed: true };
@@ -54,7 +55,7 @@ const TRANSITION_RULES: TransitionRule[] = [
     to: "REJECTED",
     allowedRoles: ["REVIEWER", "ADMIN"],
     condition: (ctx) => {
-      if (ctx.actorId === ctx.creatorId) {
+      if (!ctx.isDemo && ctx.actorId === ctx.creatorId) {
         return { allowed: false, reason: "Cannot reject your own permission slip" };
       }
       if (!ctx.reviewComment?.trim()) {
@@ -64,6 +65,8 @@ const TRANSITION_RULES: TransitionRule[] = [
     },
   },
 ];
+
+const DEMO_REVIEW_TRANSITIONS = new Set<RecordStatus>(["APPROVED", "REJECTED", "RECORDED"]);
 
 export function validateTransition(ctx: TransitionContext): TransitionResult {
   if (ctx.currentStatus === "RECORDED") {
@@ -81,7 +84,11 @@ export function validateTransition(ctx: TransitionContext): TransitionResult {
     };
   }
 
-  if (!rule.allowedRoles.includes(ctx.actorRole)) {
+  const roleAllowed =
+    rule.allowedRoles.includes(ctx.actorRole) ||
+    (ctx.isDemo && DEMO_REVIEW_TRANSITIONS.has(rule.to));
+
+  if (!roleAllowed) {
     return {
       allowed: false,
       reason: `Role ${ctx.actorRole} cannot perform this transition`,
@@ -99,11 +106,15 @@ export function getAvailableTransitions(
   currentStatus: RecordStatus,
   actorRole: UserRole,
   actorId: string,
-  creatorId: string
+  creatorId: string,
+  isDemo?: boolean
 ): RecordStatus[] {
   return TRANSITION_RULES.filter((rule) => {
     if (rule.from !== currentStatus) return false;
-    if (!rule.allowedRoles.includes(actorRole)) return false;
+    const roleAllowed =
+      rule.allowedRoles.includes(actorRole) ||
+      (isDemo && DEMO_REVIEW_TRANSITIONS.has(rule.to));
+    if (!roleAllowed) return false;
     if (rule.condition) {
       // Pass a placeholder comment so the reject condition doesn't
       // hide the button — the actual comment is validated at submit time
@@ -114,6 +125,7 @@ export function getAvailableTransitions(
         actorId,
         creatorId,
         reviewComment: "__availability_check__",
+        isDemo,
       });
       return result.allowed;
     }

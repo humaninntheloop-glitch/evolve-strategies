@@ -24,6 +24,7 @@ export default async function DashboardLayout({
           role={user.role}
           organizationName={user.organizationName}
           isSuperAdmin={user.isSuperAdmin}
+          isDemo={user.isDemo}
         />
         <div className="flex flex-1 flex-col overflow-hidden">
           <Header user={user} />

@@ -64,7 +64,8 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
     record.status,
     user.role,
     user.id,
-    record.creatorId
+    record.creatorId,
+    user.isDemo
   );
 
   const canEdit = record.status === "DRAFT" && (record.creatorId === user.id || user.role === "ADMIN");

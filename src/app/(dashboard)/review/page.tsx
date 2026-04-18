@@ -1,9 +1,13 @@
-import { requireRole } from "@/lib/dal/auth";
+import { notFound } from "next/navigation";
+import { requireAuth } from "@/lib/dal/auth";
 import { getSubmittedRecordsForReview, getRecordsByOrg } from "@/lib/dal/records";
 import { ReviewQueueTable } from "@/components/review/review-queue-table";
 
 export default async function ReviewPage() {
-  const user = await requireRole("REVIEWER", "ADMIN");
+  const user = await requireAuth();
+  if (user.role !== "REVIEWER" && user.role !== "ADMIN" && !user.isDemo) {
+    notFound();
+  }
 
   const submittedRecords = await getSubmittedRecordsForReview(user.organizationId);
   const approvedRecords = await getRecordsByOrg(user.organizationId, { status: "APPROVED" });

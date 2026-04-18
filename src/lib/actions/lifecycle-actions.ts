@@ -39,6 +39,7 @@ async function performTransition(
     actorId: user.id,
     creatorId: record.creatorId,
     reviewComment: options?.reviewComment,
+    isDemo: user.isDemo,
   });
 
   if (!result.allowed) {
@@ -147,6 +148,7 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
     actorRole: user.role,
     actorId: user.id,
     creatorId: record.creatorId,
+    isDemo: user.isDemo,
   });
 
   if (!transitionResult.allowed) {

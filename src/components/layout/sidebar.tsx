@@ -7,9 +7,10 @@ interface SidebarProps {
   role: UserRole;
   organizationName: string;
   isSuperAdmin?: boolean;
+  isDemo?: boolean;
 }
 
-export function Sidebar({ role, organizationName, isSuperAdmin = false }: SidebarProps) {
+export function Sidebar({ role, organizationName, isSuperAdmin = false, isDemo = false }: SidebarProps) {
   return (
     <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r bg-[var(--sidebar-bg)] border-[var(--sidebar-border)]">
       {/* Logo & Organization */}
@@ -29,7 +30,7 @@ export function Sidebar({ role, organizationName, isSuperAdmin = false }: Sideba
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-3 py-4">
-        <NavLinks role={role} isSuperAdmin={isSuperAdmin} />
+        <NavLinks role={role} isSuperAdmin={isSuperAdmin} isDemo={isDemo} />
       </div>
 
       {/* Footer */}

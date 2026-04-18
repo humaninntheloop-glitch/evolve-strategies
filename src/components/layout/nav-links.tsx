@@ -38,14 +38,19 @@ const links: NavLink[] = [
 interface NavLinksProps {
   role: UserRole;
   isSuperAdmin?: boolean;
+  isDemo?: boolean;
 }
 
-export function NavLinks({ role, isSuperAdmin = false }: NavLinksProps) {
+export function NavLinks({ role, isSuperAdmin = false, isDemo = false }: NavLinksProps) {
   const pathname = usePathname();
 
   const visibleLinks = links.filter((link) => {
     if (link.superAdminOnly && !isSuperAdmin) return false;
-    if (link.roles && !link.roles.includes(role)) return false;
+    if (link.roles && !link.roles.includes(role)) {
+      // Demo orgs are a playground — unlock the Review tab for everyone
+      if (isDemo && link.href === "/review") return true;
+      return false;
+    }
     return true;
   });
 
