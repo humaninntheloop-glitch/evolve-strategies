@@ -75,12 +75,15 @@ export function RecordForm({ record }: RecordFormProps) {
           return;
         }
 
-        // Upload pending file if one was selected
         if (pendingFile) {
           try {
             await uploadFile(result.data.id, pendingFile);
-          } catch {
-            // Record was created — redirect anyway, user can re-upload from edit
+          } catch (err) {
+            const message = err instanceof Error ? err.message : "Attachment upload failed";
+            setError(`${message}. Your draft was saved — open it to retry the upload.`);
+            setLoading(false);
+            router.push(`/permission-slips/${result.data.id}/edit`);
+            return;
           }
         }
 
