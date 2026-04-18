@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 import { handleActionError } from "@/lib/errors";
 import { createOrganizationSchema } from "@/lib/validations/platform-schemas";
+import { sendInviteEmail } from "@/lib/email/resend";
 import type { ActionResult } from "@/types";
 
 export async function createOrganization(
@@ -69,58 +70,39 @@ export async function createOrganization(
       return newOrg;
     });
 
-    // Create admin user using the invite pattern
     const supabase = createServiceClient();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
     const redirectTo = `${siteUrl}/auth/callback?next=/reset-password`;
 
-    // Try sending an invite email first (works when SMTP is configured)
-    const { data: inviteData, error: inviteError } =
-      await supabase.auth.admin.inviteUserByEmail(parsed.data.adminEmail, {
-        data: { full_name: parsed.data.adminFullName },
-        redirectTo,
-      });
-
-    let userId: string;
-    let setupLink = "";
-
-    if (!inviteError && inviteData.user) {
-      userId = inviteData.user.id;
-    } else {
-      // Fallback: create user manually + generate a shareable link
-      console.warn("Invite email failed, falling back to manual link:", inviteError?.message);
-
-      const tempPassword = `Temp${Math.random().toString(36).slice(2)}.${Date.now()}!`;
-      const { data: authData, error: authError } =
-        await supabase.auth.admin.createUser({
-          email: parsed.data.adminEmail,
-          password: tempPassword,
-          email_confirm: true,
-          user_metadata: { full_name: parsed.data.adminFullName },
-        });
-
-      if (authError || !authData.user) {
-        return {
-          success: false,
-          error: handleActionError(authError ?? new Error("Failed to create admin account")),
-        };
-      }
-
-      userId = authData.user.id;
-
-      const { data: linkData } = await supabase.auth.admin.generateLink({
-        type: "recovery",
+    const tempPassword = `Temp${Math.random().toString(36).slice(2)}.${Date.now()}!`;
+    const { data: authData, error: authError } =
+      await supabase.auth.admin.createUser({
         email: parsed.data.adminEmail,
-        options: { redirectTo },
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: { full_name: parsed.data.adminFullName },
       });
 
-      const hashedToken = linkData?.properties?.hashed_token;
-      if (hashedToken) {
-        setupLink = `${siteUrl}/auth/callback?token_hash=${hashedToken}&type=recovery&next=/reset-password`;
-      }
+    if (authError || !authData.user) {
+      return {
+        success: false,
+        error: handleActionError(authError ?? new Error("Failed to create admin account")),
+      };
     }
 
-    // Create Prisma user with ADMIN role
+    const userId = authData.user.id;
+
+    const { data: linkData } = await supabase.auth.admin.generateLink({
+      type: "recovery",
+      email: parsed.data.adminEmail,
+      options: { redirectTo },
+    });
+
+    const hashedToken = linkData?.properties?.hashed_token;
+    const setupLink = hashedToken
+      ? `${siteUrl}/auth/callback?token_hash=${hashedToken}&type=recovery&next=/reset-password`
+      : "";
+
     try {
       await prisma.user.create({
         data: {
@@ -132,13 +114,23 @@ export async function createOrganization(
         },
       });
     } catch (dbError) {
-      // Clean up Supabase auth user if Prisma creation fails
       await supabase.auth.admin.deleteUser(userId);
       throw dbError;
     }
 
+    let emailSent = false;
+    if (setupLink) {
+      const emailResult = await sendInviteEmail({
+        to: parsed.data.adminEmail,
+        fullName: parsed.data.adminFullName,
+        organizationName: parsed.data.name,
+        setupLink,
+      });
+      emailSent = emailResult.success;
+    }
+
     revalidatePath("/platform");
-    return { success: true, data: setupLink };
+    return { success: true, data: emailSent ? "" : setupLink };
   } catch (error) {
     return { success: false, error: handleActionError(error) };
   }
