@@ -42,7 +42,9 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/reset-password") ||
     request.nextUrl.pathname.startsWith("/auth");
 
-  if (!user && !isAuthPage && request.nextUrl.pathname !== "/") {
+  const isPublicPage = request.nextUrl.pathname === "/" || request.nextUrl.pathname === "/privacy";
+
+  if (!user && !isAuthPage && !isPublicPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
