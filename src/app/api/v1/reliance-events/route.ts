@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { validateTransition } from "@/lib/lifecycle/state-machine";
 import { classifyRisk } from "@/lib/risk-classification";
+import { getHighestVendorTier } from "@/lib/vendors";
 import { generateAiSummary } from "@/lib/ai/summarize";
 import { notifyReviewWorkflow } from "@/lib/email/review-notifications";
 import type { AiOutputImpact, UserRole, RecordStatus } from "@/generated/prisma";
@@ -248,8 +249,15 @@ export async function POST(request: Request) {
         });
         if (!transition.allowed) throw new Error("Reliance event submission rejected");
 
+        // Vendor tier can only raise risk, never lower it.
+        const vendorInfo = impact ? await getHighestVendorTier(data.aiToolUsed) : null;
         const riskResult = impact
-          ? classifyRisk({ aiOutputImpact: impact, dataSensitivity: data.dataSensitivity })
+          ? classifyRisk({
+              aiOutputImpact: impact,
+              dataSensitivity: data.dataSensitivity,
+              vendorTier: vendorInfo?.tier ?? null,
+              vendorNames: vendorInfo?.names,
+            })
           : { riskLevel: "MODERATE" as const, justification: "Risk could not be determined — missing AI output impact. Manual review required." };
         const aiSummary = await generateAiSummary({
           aiToolUsed: data.aiToolUsed, aiOutputImpact: impact ?? "UNKNOWN",

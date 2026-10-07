@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LifecycleBadge } from "./lifecycle-badge";
+import { RiskBadge } from "./risk-badge";
 import { RecordTimeline } from "./record-timeline";
 import { formatDate, cn } from "@/lib/utils";
 import {
@@ -34,6 +35,7 @@ import { RadioGroup } from "@/components/ui/radio-group";
 import { CheckboxGroup } from "@/components/ui/checkbox-group";
 import { PencilSimple, Trash, PaperPlaneTilt, CheckCircle, XCircle, DownloadSimple, CircleNotch, Sparkle, ShieldCheck, ShieldSlash, Lock } from "@phosphor-icons/react";
 import type { RecordWithRelations, AuditLogEntry, RecordStatus, AuthUser } from "@/types";
+import type { MatchedVendor } from "@/lib/vendors";
 import { getAvailableTransitions } from "@/lib/lifecycle/state-machine";
 
 interface RecordDetailProps {
@@ -41,9 +43,10 @@ interface RecordDetailProps {
   auditLogs: AuditLogEntry[];
   user: AuthUser;
   approvals: { approverId: string; decision: "APPROVED" | "REJECTED"; rationale: string; createdAt: Date; approver: { fullName: string } }[];
+  vendors: MatchedVendor[];
 }
 
-export function RecordDetail({ record, auditLogs, user, approvals }: RecordDetailProps) {
+export function RecordDetail({ record, auditLogs, user, approvals, vendors }: RecordDetailProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -416,6 +419,20 @@ export function RecordDetail({ record, auditLogs, user, approvals }: RecordDetai
                     <span className="text-on-surface-secondary font-normal"> — {record.aiToolUsedOther}</span>
                   )}
                 </p>
+                {vendors.length > 0 && (
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    {vendors.map((v) => (
+                      <span
+                        key={v.id}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-border-default bg-surface-inset px-2.5 py-0.5 text-xs text-on-surface-secondary"
+                        title={`Vendor risk tier: ${v.riskTier}`}
+                      >
+                        {v.name}
+                        <RiskBadge level={v.riskTier} />
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* New structured fields */}
