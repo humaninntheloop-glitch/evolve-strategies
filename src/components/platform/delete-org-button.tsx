@@ -14,10 +14,11 @@ export function DeleteOrgButton({ organizationId, organizationName }: DeleteOrgB
   const [error, setError] = useState<string | null>(null);
 
   async function handleDelete() {
-    if (!confirm(`Delete demo organization "${organizationName}" and all its users?`)) return;
+    if (!confirm(`Delete organization "${organizationName}"? Deletion is blocked if it has members, records, audit history, or API keys.`)) return;
     setLoading(true);
     setError(null);
     const result = await deleteOrganization(organizationId);
+    setLoading(false);
     if (!result.success) {
       setError(result.error);
       setLoading(false);
@@ -28,6 +29,7 @@ export function DeleteOrgButton({ organizationId, organizationName }: DeleteOrgB
     <div className="inline-flex items-center gap-2">
       {error && <span className="text-xs text-red-600">{error}</span>}
       <button
+        aria-label={`Delete ${organizationName}`}
         type="button"
         onClick={handleDelete}
         disabled={loading}

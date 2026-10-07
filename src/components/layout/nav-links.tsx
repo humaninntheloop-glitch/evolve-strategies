@@ -34,6 +34,7 @@ const links: NavLink[] = [
   { href: "/admin/api-keys", label: "API Keys", icon: Key, roles: ["ADMIN"], section: "Admin" },
   { href: "/admin", label: "Settings", icon: GearSix, roles: ["ADMIN"], section: "Admin" },
   { href: "/platform", label: "Organizations", icon: Buildings, section: "Platform", superAdminOnly: true },
+  { href: "/platform/users", label: "All Users", icon: Users, section: "Platform", superAdminOnly: true },
   { href: "/platform/demo-accounts", label: "Demo Accounts", icon: Flask, section: "Platform", superAdminOnly: true },
 ];
 

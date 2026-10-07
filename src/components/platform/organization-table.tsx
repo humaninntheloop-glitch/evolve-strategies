@@ -71,9 +71,7 @@ export function OrganizationTable({ organizations }: OrganizationTableProps) {
               </td>
               <td className="px-4 py-3.5 text-sm text-on-surface-tertiary">{formatDate(org.createdAt)}</td>
               <td className="px-4 py-3.5 text-right">
-                {org.isDemo && (
-                  <DeleteOrgButton organizationId={org.id} organizationName={org.name} />
-                )}
+                <DeleteOrgButton organizationId={org.id} organizationName={org.name} />
               </td>
             </tr>
           ))}
