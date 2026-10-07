@@ -1,3 +1,4 @@
+import { createAuditLog } from "@/lib/dal/audit-logs";
 import { prisma } from "@/lib/prisma";
 import type { AiOutputImpact, Prisma } from "@/generated/prisma";
 
@@ -23,7 +24,7 @@ export async function autoMapRecord(recordId: string, organizationId: string, ac
     if (requirements.length !== expected) throw new Error("Compliance starter set is incomplete; apply the seed SQL");
     for (const requirement of requirements) {
       const inserted = await tx.recordRequirement.createMany({ data: [{ recordId, requirementId: requirement.id, mappedById: actorId, autoMapped: true }], skipDuplicates: true });
-      if (inserted.count) await tx.auditLog.create({ data: { organizationId, recordId, actorId, actionType: "REQUIREMENT_AUTO_MAPPED", metadata: { requirementId: requirement.id, refCode: requirement.refCode } } });
+      if (inserted.count) await createAuditLog({ organizationId, recordId, actorId, actionType: "REQUIREMENT_AUTO_MAPPED", metadata: { requirementId: requirement.id, refCode: requirement.refCode } }, tx);
     }
     // Insert-only: never delete or overwrite reviewer-confirmed mappings.
   };

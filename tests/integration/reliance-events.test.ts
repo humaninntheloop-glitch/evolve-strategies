@@ -82,11 +82,14 @@ beforeEach(async () => {
     const stagedAudits: Array<Record<string, unknown>> = [];
     let stagedUsage = 0;
     const tx = {
+      $queryRaw: vi.fn(async () => []),
       record: { create: vi.fn(async ({ data }: { data: Omit<Row, "id"> }) => {
         const row = { id: `record-${records.length + stagedRecords.length + 1}`, ...data } as Row;
         stagedRecords.push(row); return row;
       }) },
-      auditLog: { create: vi.fn(async ({ data }: { data: Record<string, unknown> }) => {
+      auditLog: {
+        findFirst: vi.fn(async () => [...audits, ...stagedAudits].at(-1) ?? null),
+        create: vi.fn(async ({ data }: { data: Record<string, unknown> }) => {
         if (auditFails) throw new Error("Injected audit failure");
         stagedAudits.push(data); return data;
       }) },
