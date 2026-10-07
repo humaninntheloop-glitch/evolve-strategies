@@ -22,13 +22,14 @@ export default async function RecordPage({ params }: RecordPageProps) {
     notFound();
   }
 
+  const approvals = await prisma.recordApproval.findMany({ where: { recordId: record.id }, include: { approver: { select: { fullName: true } } }, orderBy: { createdAt: "asc" } });
   const auditLogs = await getAuditLogsByRecord(record.id, user.organizationId);
 
   const requirements = await prisma.frameworkRequirement.findMany({ include: { framework: true }, orderBy: [{ frameworkId: "asc" }, { refCode: "asc" }] });
   const mappings = await prisma.recordRequirement.findMany({ where: { recordId: record.id },
     include: { requirement: { include: { framework: true } }, mappedBy: { select: { fullName: true } } } });
   return <>
-    <RecordDetail record={record} auditLogs={auditLogs} user={user} />
+    <RecordDetail record={record} auditLogs={auditLogs} user={user} approvals={approvals} />
     <CompliancePanel recordId={record.id} requirements={requirements} mappings={mappings} canEdit={user.role === "REVIEWER" || user.role === "ADMIN"} />
   </>;
 }

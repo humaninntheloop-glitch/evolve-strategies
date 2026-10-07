@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { requireAuth } from "@/lib/dal/auth";
 import { claimRecord, unclaimRecord } from "@/lib/actions/lifecycle-actions";
@@ -14,6 +15,7 @@ interface ReviewQueueTableProps {
 
 export async function ReviewQueueTable({ records }: ReviewQueueTableProps) {
   const user = await requireAuth();
+  const approvals = await prisma.recordApproval.findMany({ where: { recordId: { in: records.filter(record => record.organizationId === user.organizationId).map(record => record.id) } }, include: { approver: { select: { fullName: true } } } });
   if (records.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border-default bg-surface-elevated py-16">
@@ -88,6 +90,8 @@ export async function ReviewQueueTable({ records }: ReviewQueueTableProps) {
               </td>
               <td className="px-4 py-3.5">
                 <LifecycleBadge status={record.status} />
+                <p className="mt-1 text-xs">{approvals.filter(item => item.recordId === record.id && item.decision === "APPROVED").length} of {record.riskLevel === "HIGH" ? 2 : 1} approvals</p>
+                <p className="text-xs">{approvals.filter(item => item.recordId === record.id).map(item => `${item.approver.fullName}: ${item.decision}`).join(", ")}</p>
               </td>
               <td className="px-4 py-3.5 text-sm text-on-surface-secondary">
                 {record.reviewerId && <p>Claimed by {record.reviewer?.fullName ?? "Reviewer"}</p>}

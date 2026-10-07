@@ -8,6 +8,8 @@ export interface TransitionContext {
   creatorId: string;
   reviewComment?: string;
   isDemo?: boolean;
+  riskLevel?: "LOW" | "MODERATE" | "HIGH" | null;
+  approvalCount?: number;
 }
 
 export interface TransitionResult {
@@ -39,8 +41,11 @@ const TRANSITION_RULES: TransitionRule[] = [
     to: "APPROVED",
     allowedRoles: ["REVIEWER", "ADMIN"],
     condition: (ctx) => {
-      if (!ctx.isDemo && ctx.actorId === ctx.creatorId) {
+      if (ctx.actorId === ctx.creatorId) {
         return { allowed: false, reason: "Cannot approve your own permission slip" };
+      }
+      if (ctx.riskLevel && (ctx.approvalCount ?? 0) < (ctx.riskLevel === "HIGH" ? 2 : 1)) {
+        return { allowed: false, reason: "Required distinct approvals have not been collected" };
       }
       return { allowed: true };
     },
@@ -55,7 +60,7 @@ const TRANSITION_RULES: TransitionRule[] = [
     to: "REJECTED",
     allowedRoles: ["REVIEWER", "ADMIN"],
     condition: (ctx) => {
-      if (!ctx.isDemo && ctx.actorId === ctx.creatorId) {
+      if (ctx.actorId === ctx.creatorId) {
         return { allowed: false, reason: "Cannot reject your own permission slip" };
       }
       if (!ctx.reviewComment?.trim()) {

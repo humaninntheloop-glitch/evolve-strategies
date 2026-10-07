@@ -6,7 +6,6 @@ import Link from "next/link";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LifecycleBadge } from "./lifecycle-badge";
-import { RiskBadge } from "./risk-badge";
 import { RecordTimeline } from "./record-timeline";
 import { formatDate, cn } from "@/lib/utils";
 import {
@@ -41,9 +40,10 @@ interface RecordDetailProps {
   record: RecordWithRelations;
   auditLogs: AuditLogEntry[];
   user: AuthUser;
+  approvals: { approverId: string; decision: "APPROVED" | "REJECTED"; rationale: string; createdAt: Date; approver: { fullName: string } }[];
 }
 
-export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
+export function RecordDetail({ record, auditLogs, user, approvals }: RecordDetailProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,13 +60,16 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [confirmApproveOpen, setConfirmApproveOpen] = useState(false);
 
+  const alreadyDecided = approvals.some(item => item.approverId === user.id);
+  const approvalCount = approvals.filter(item => item.decision === "APPROVED").length;
+  const systemApproved = record.riskLevel === "LOW" && (record.status === "APPROVED" || record.status === "RECORDED") && !approvals.length;
   const availableTransitions = getAvailableTransitions(
     record.status,
     user.role,
     user.id,
     record.creatorId,
     user.isDemo
-  );
+  ).filter(status => !((status === "APPROVED" || status === "REJECTED") && (alreadyDecided || record.creatorId === user.id || !["REVIEWER", "ADMIN"].includes(user.role))));
 
   const canEdit = record.status === "DRAFT" && (record.creatorId === user.id || user.role === "ADMIN");
   const canDelete = record.status === "DRAFT" && (record.creatorId === user.id || user.role === "ADMIN");
@@ -81,6 +84,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
     if (!result.success) {
       setError(result.error ?? "Action failed");
     }
+    router.refresh();
     setLoading(false);
   }
 
@@ -100,6 +104,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
     setRejectComment("");
     setRejectRationale("");
     setRejectRationaleOther("");
+    router.refresh();
     setLoading(false);
   }
 
@@ -123,6 +128,7 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
     setApproveRationaleOther("");
     setApproveValidationRef([]);
     setApproveValidationRefOther("");
+    router.refresh();
     setLoading(false);
   }
 
@@ -184,6 +190,12 @@ export function RecordDetail({ record, auditLogs, user }: RecordDetailProps) {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <section className="mb-6 rounded-xl border border-border-default bg-surface-elevated p-4">
+        <h2 className="font-semibold">Approval progress</h2>
+        <p className="text-sm">{systemApproved ? 1 : approvalCount} of {record.riskLevel === "HIGH" ? 2 : 1} approvals</p>
+        {systemApproved && <p className="text-sm">System — low-risk auto-approval</p>}
+        {approvals.map(item => <p key={item.approverId} className="text-sm">{item.approver.fullName} — {item.decision} · {item.rationale}</p>)}
+      </section>
       {error && (
         <div className="flex items-center gap-2.5 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-400">
           <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
