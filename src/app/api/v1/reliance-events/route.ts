@@ -324,7 +324,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Validation failed", issues: [{ path: "submit", message: error instanceof Error && error.message === "Reliance event submission rejected" ? "Cannot submit reliance event" : "Reliance event submission failed" }] }, { status: 422 });
     }
     // Intentionally no request-body logging: payloads may contain PII.
-    console.error("reliance-events POST failed");
+    console.error("reliance-events POST failed:", error instanceof Error ? `${error.name}: ${error.message} | code: ${(error as { code?: string }).code ?? "n/a"}` : String(error));
     return NextResponse.json(
       { error: "Failed to create reliance event" },
       { status: 500 }
