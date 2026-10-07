@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/dal/audit-logs";
 import { validateTransition } from "@/lib/lifecycle/state-machine";
 import { classifyRisk } from "@/lib/risk-classification";
+import { getHighestVendorTier } from "@/lib/vendors";
 import { generateAiSummary } from "@/lib/ai/summarize";
 import { handleActionError } from "@/lib/errors";
 import { reviewDecisionSchema, rejectDecisionSchema } from "@/lib/validations/record-schemas";
@@ -164,11 +165,15 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
   }
 
   try {
-    // Deterministic risk classification using new inputs
+    // Deterministic risk classification using new inputs.
+    // The matched vendor tier can only raise risk, never lower it.
+    const vendorInfo = record.aiOutputImpact ? await getHighestVendorTier(record.aiToolUsed) : null;
     const riskResult = record.aiOutputImpact
       ? classifyRisk({
           aiOutputImpact: record.aiOutputImpact,
           dataSensitivity: record.dataSensitivity,
+          vendorTier: vendorInfo?.tier ?? null,
+          vendorNames: vendorInfo?.names,
         })
       : {
           // Fallback for legacy records without aiOutputImpact

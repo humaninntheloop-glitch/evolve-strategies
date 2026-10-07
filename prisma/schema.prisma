@@ -225,6 +225,21 @@ model RecordRequirement {
   @@map("record_requirements")
 }
 
+model AiVendor {
+  id                String    @id @default(uuid()) @db.Uuid
+  name              String
+  type              String
+  website           String?
+  riskTier          RiskLevel @map("risk_tier")
+  dataHandlingNotes String?   @map("data_handling_notes") @db.Text
+  toolAliases       String[]  @default([]) @map("tool_aliases")
+  isActive          Boolean   @default(true) @map("is_active")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@map("ai_vendors")
+}
+
 enum ApprovalDecision {
   APPROVED
   REJECTED

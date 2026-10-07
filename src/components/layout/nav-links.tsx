@@ -12,6 +12,7 @@ import {
   Buildings,
   Flask,
   Key,
+  Factory,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types";
@@ -32,6 +33,7 @@ const links: NavLink[] = [
   { href: "/audit-log", label: "Audit Log", icon: Scroll, roles: ["ADMIN"], section: "Workflow" },
   { href: "/admin/users", label: "Users", icon: Users, roles: ["ADMIN"], section: "Admin" },
   { href: "/admin/api-keys", label: "API Keys", icon: Key, roles: ["ADMIN"], section: "Admin" },
+  { href: "/admin/vendors", label: "Vendors", icon: Factory, roles: ["ADMIN"], section: "Admin" },
   { href: "/admin", label: "Settings", icon: GearSix, roles: ["ADMIN"], section: "Admin" },
   { href: "/platform", label: "Organizations", icon: Buildings, section: "Platform", superAdminOnly: true },
   { href: "/platform/users", label: "All Users", icon: Users, section: "Platform", superAdminOnly: true },
