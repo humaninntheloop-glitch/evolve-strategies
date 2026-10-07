@@ -24,7 +24,7 @@ Chrome extension can file AI reliance events as DRAFT permission-slip records.
 
 4. **`src/app/api/v1/reliance-events/route.ts`** (new)
    The machine endpoint. `src/middleware.ts` bypasses browser-session
-   authentication for this exact path; the handler requires an API key.
+   authentication for this exact path; the handler requires an API key or a verified Supabase JWT.
 
 5. **`src/lib/actions/api-key-actions.ts`** (new)
    Server actions for key management (ADMIN only).
@@ -53,6 +53,7 @@ Body (JSON):
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
+| `submit` | boolean | no | omitted/false creates DRAFT; true runs full submit pipeline |
 | `aiToolUsed` | string[] | yes | min 1; e.g. `["CHATGPT"]`; `"OTHER"` needs `aiToolUsedOther` |
 | `aiToolUsedOther` | string | no | max 200 |
 | `aiOutputImpact` | enum | yes | one of `INTERNAL_NOTES`, `INTERNAL_RESEARCH`, `INTERNAL_DOCUMENT`, `CLIENT_COMMUNICATION`, `EXTERNAL_REPORTS`, `FINANCIAL_LEGAL`, `REGULATORY_COMPLIANCE` |
@@ -70,10 +71,10 @@ Body (JSON):
 
 Responses:
 - `201` — `{ "id": "<uuid>", "status": "DRAFT", "url": "/permission-slips/<uuid>" }`
-- `401` — missing/malformed/inactive key
+- `401` — missing/malformed/inactive key or invalid/expired JWT or missing/inactive application user
 - `400` — invalid JSON
 - `422` — `{ "error": "Validation failed", "issues": [{ "path", "message" }] }`
-- `429` — over 100 req/min per key (in-memory bucket; see TODO in route for Redis)
+- `429` — over 100 req/min per principal (in-memory bucket; see TODO in route for Redis)
 
 Behavior notes:
 - Creates the `Record` with `status: "DRAFT"`, `organizationId` from the key,
@@ -83,8 +84,9 @@ Behavior notes:
   from a route handler).
 - Writes an audit log: action `RECORD_CREATED_VIA_EXTENSION`, actor = key creator,
   `newState: "DRAFT"`, metadata `{ sourceUrl, capturedAt }`.
-- The reviewer workflow is unchanged: the draft appears in the normal queue and
-  goes through the existing submit → approve/reject → record lifecycle.
+- With `submit` omitted/false, the draft goes through the existing
+  submit → approve/reject → record lifecycle. With `submit: true`, see the
+  atomic submission behavior below.
 - No request bodies are logged (payloads may contain PII).
 
 ## Key format
@@ -110,7 +112,7 @@ Plaintext is returned exactly once at creation.
   another organization cannot use previously issued keys.
 - Record, audit log, and successful-use timestamp are committed in one transaction.
 - Error logs omit exception objects as well as request bodies.
-- Rate-limit buckets are allocated only for valid keys and expired buckets are
+- Rate-limit buckets are allocated only for authenticated principals and expired buckets are
   cleaned up. The limiter remains local to each instance, not a global quota;
   replace it with shared storage before relying on it for production enforcement.
 - No live database migration was run as part of applying this package.
@@ -126,3 +128,62 @@ Plaintext is returned exactly once at creation.
 - `npm run build`: blocked fetching the existing Outfit and JetBrains Mono
   Google Fonts in this network-restricted sandbox. Full build is unverified.
 - Database-backed integration checks and migration execution: not performed.
+
+## Supabase JWT alternative
+
+Send `Authorization: Bearer <Supabase access token>` instead of a `hitl_` key.
+Tokens beginning with `hitl_` retain the existing SHA-256 lookup and all key /
+creator eligibility checks. Other tokens are verified server-side with the
+existing Supabase server client using `auth.getUser(token)` and
+`NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`; a session cookie is
+not required and unverified JWT claims are never trusted. The verified user's
+id (JWT sub) must match an active `users` row. Its organization and id supply
+`organizationId` and `creatorId`, regardless of fields in the request body.
+JWT users may have any existing application role; they need not be ADMIN.
+Both auth modes produce the same creation audit event and response fields.
+JWT requests do not update any API key's last-used timestamp.
+
+## Optional atomic submission
+
+`submit` is an optional JSON boolean. Omitted/false retains the existing DRAFT
+creation response. With `submit: true`, creation and all status/audit changes
+commit in one transaction, following the web UI submit pipeline:
+
+1. Validate DRAFT → SUBMITTED with the principal's role/id.
+2. Deterministically classify risk from `aiOutputImpact` and `dataSensitivity`
+   (the UI's MODERATE missing-impact fallback is retained internally; impact
+   remains required by the unchanged request validation).
+3. Generate the AI summary with the same inputs/fallback helper as the UI.
+   This overwrites an optional captured `aiSummary` just as UI submission does.
+4. Set SUBMITTED, submittedAt, risk fields and summary, clear assignment, and
+   write STATUS_CHANGE DRAFT → SUBMITTED with riskLevel/riskJustification.
+5. For LOW risk, set APPROVED/approvedAt and then RECORDED/recordedAt, with
+   STATUS_CHANGE audits carrying `{ autoApproved: true, reason: "Low risk - auto-authorized" }`
+   and `{ autoRecorded: true, reason: "Low risk - auto-recorded" }` respectively.
+
+The 201 shape is unchanged: `{ id, status, url }`. `status` is DRAFT by default,
+SUBMITTED for non-LOW submitted records, or RECORDED for LOW submitted records.
+Failed submission returns 422 with an issues array (path `submit`) and rolls
+back the draft, audits, and key usage timestamp. Existing no-submit errors keep
+their prior behavior. Submit transactions allow up to 60 seconds for the awaited
+summary helper (its failures use the same fallback as the UI).
+UI-equivalent review notifications run best-effort only after commit; they do
+not participate in the transaction and are not sent for rolled-back records.
+
+## Per-principal rate limiting
+
+The limit remains 100 requests per 60-second window, in memory per serverless
+instance, with `Retry-After: 60` on 429. Buckets now use the application user id:
+API keys use `createdById`, JWTs use the verified user id. Two keys issued by the
+same user share one bucket, as does that user's JWT traffic. Invalid auth does
+not consume a bucket; authenticated invalid payloads do, as before. The Redis /
+Upstash TODO remains: this is NOT a globally enforced multi-instance quota.
+
+### Upgrade verification
+
+TypeScript and route ESLint passed. All 35 existing tests passed. Nine additional
+mocked checks run outside the repository (to preserve the two-file allowlist)
+passed: JWT principal/default DRAFT, invalid/unknown/inactive JWT user, LOW and
+HIGH terminal states/audits, transition rollback, audit rollback, and shared
+multi-key limiting. No live Supabase/DB/AI/email request was made; no migration
+command was executed. These extra checks are not committed test-suite additions.
