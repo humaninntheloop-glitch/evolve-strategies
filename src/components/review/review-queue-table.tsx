@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { requireAuth } from "@/lib/dal/auth";
+import { claimRecord, unclaimRecord } from "@/lib/actions/lifecycle-actions";
 import { LifecycleBadge } from "@/components/records/lifecycle-badge";
 import { RiskBadge } from "@/components/records/risk-badge";
 import { formatDate } from "@/lib/utils";
@@ -10,7 +12,8 @@ interface ReviewQueueTableProps {
   records: RecordWithRelations[];
 }
 
-export function ReviewQueueTable({ records }: ReviewQueueTableProps) {
+export async function ReviewQueueTable({ records }: ReviewQueueTableProps) {
+  const user = await requireAuth();
   if (records.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border-default bg-surface-elevated py-16">
@@ -46,6 +49,7 @@ export function ReviewQueueTable({ records }: ReviewQueueTableProps) {
             <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">
               Status
             </th>
+            <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-on-surface-quaternary">Assignment</th>
             <th className="px-4 py-3" />
           </tr>
         </thead>
@@ -84,6 +88,26 @@ export function ReviewQueueTable({ records }: ReviewQueueTableProps) {
               </td>
               <td className="px-4 py-3.5">
                 <LifecycleBadge status={record.status} />
+              </td>
+              <td className="px-4 py-3.5 text-sm text-on-surface-secondary">
+                {record.reviewerId && <p>Claimed by {record.reviewer?.fullName ?? "Reviewer"}</p>}
+                {record.status === "SUBMITTED" && (user.role === "ADMIN" || user.role === "REVIEWER") && (
+                  !record.reviewerId ? (
+                    <form action={async () => {
+                      "use server";
+                      await claimRecord(record.id);
+                    }}>
+                      <button className="rounded-md border border-border-default px-3 py-1 hover:bg-surface-inset" type="submit">Claim</button>
+                    </form>
+                  ) : (record.reviewerId === user.id || user.role === "ADMIN") ? (
+                    <form action={async () => {
+                      "use server";
+                      await unclaimRecord(record.id);
+                    }}>
+                      <button className="mt-1 rounded-md border border-border-default px-3 py-1 hover:bg-surface-inset" type="submit">Unclaim</button>
+                    </form>
+                  ) : null
+                )}
               </td>
               <td className="px-4 py-3.5 text-right">
                 <Link

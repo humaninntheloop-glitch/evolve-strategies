@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAuth } from "@/lib/dal/auth";
+import { notifyReviewWorkflow } from "@/lib/email/review-notifications";
+import { requireAuth, requireRole } from "@/lib/dal/auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/dal/audit-logs";
 import { validateTransition } from "@/lib/lifecycle/state-machine";
@@ -85,6 +86,8 @@ async function performTransition(
     if (targetStatus === "RECORDED") updateData.recordedAt = new Date();
     if (targetStatus === "DRAFT") {
       // Return to draft clears review fields + AI summary
+      updateData.reviewerId = null;
+      updateData.claimedAt = null;
       updateData.reviewComment = null;
       updateData.rejectedAt = null;
       updateData.riskLevel = null;
@@ -120,6 +123,10 @@ async function performTransition(
     });
   } catch (error) {
     return { success: false, error: handleActionError(error) };
+  }
+
+  if (targetStatus === "APPROVED" || targetStatus === "REJECTED") {
+    await notifyReviewWorkflow(recordId, user.organizationId, targetStatus, options?.reviewComment);
   }
 
   revalidatePath(`/permission-slips/${recordId}`);
@@ -185,6 +192,8 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
       where: { id: recordId },
       data: {
         status: "SUBMITTED",
+        reviewerId: null,
+        claimedAt: null,
         submittedAt: new Date(),
         riskLevel: riskResult.riskLevel,
         riskJustification: riskResult.justification,
@@ -205,6 +214,8 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
       },
     });
 
+    await notifyReviewWorkflow(recordId, user.organizationId, "SUBMITTED");
+
     // If LOW risk, auto-approve and auto-record
     if (riskResult.riskLevel === "LOW") {
       await prisma.record.update({
@@ -224,6 +235,8 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
         newState: "APPROVED",
         metadata: { autoApproved: true, reason: "Low risk - auto-authorized" },
       });
+
+      await notifyReviewWorkflow(recordId, user.organizationId, "APPROVED", "Low risk - auto-authorized");
 
       await prisma.record.update({
         where: { id: recordId },
@@ -332,3 +345,53 @@ export async function rejectRecord(
   });
 }
 
+export async function claimRecord(recordId: string): Promise<ActionResult> {
+  const user = await requireRole("ADMIN", "REVIEWER");
+  try {
+    const claimed = await prisma.$transaction(async (tx) => {
+      const result = await tx.record.updateMany({
+        where: { id: recordId, organizationId: user.organizationId, status: "SUBMITTED", reviewerId: null },
+        data: { reviewerId: user.id, claimedAt: new Date() },
+      });
+      if (result.count !== 1) return false;
+      await tx.auditLog.create({ data: {
+        organizationId: user.organizationId, recordId, actorId: user.id,
+        actionType: "RECORD_CLAIMED", previousState: "SUBMITTED", newState: "SUBMITTED",
+      } });
+      return true;
+    });
+    if (!claimed) return { success: false, error: "Record is unavailable or already claimed" };
+  } catch (error) {
+    return { success: false, error: handleActionError(error) };
+  }
+  revalidatePath("/review");
+  revalidatePath(`/permission-slips/${recordId}`);
+  return { success: true, data: undefined };
+}
+
+export async function unclaimRecord(recordId: string): Promise<ActionResult> {
+  const user = await requireRole("ADMIN", "REVIEWER");
+  try {
+    const unclaimed = await prisma.$transaction(async (tx) => {
+      const result = await tx.record.updateMany({
+        where: {
+          id: recordId, organizationId: user.organizationId, status: "SUBMITTED",
+          reviewerId: user.role === "ADMIN" ? { not: null } : user.id,
+        },
+        data: { reviewerId: null, claimedAt: null },
+      });
+      if (result.count !== 1) return false;
+      await tx.auditLog.create({ data: {
+        organizationId: user.organizationId, recordId, actorId: user.id,
+        actionType: "RECORD_UNCLAIMED", previousState: "SUBMITTED", newState: "SUBMITTED",
+      } });
+      return true;
+    });
+    if (!unclaimed) return { success: false, error: "Record is unavailable or cannot be unclaimed by you" };
+  } catch (error) {
+    return { success: false, error: handleActionError(error) };
+  }
+  revalidatePath("/review");
+  revalidatePath(`/permission-slips/${recordId}`);
+  return { success: true, data: undefined };
+}
