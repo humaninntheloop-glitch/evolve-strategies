@@ -109,7 +109,7 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
                   </td>
                   <td className="px-4 py-3.5">
                     <Link
-                      href={`/permission-slips/${log.recordId}`}
+                      href={log.recordId ? `/permission-slips/${log.recordId}` : `/platform/organizations/${log.organizationId}`}
                       className="text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
                     >
                       View

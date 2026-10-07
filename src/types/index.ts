@@ -69,7 +69,7 @@ export interface RecordWithRelations {
 export interface AuditLogEntry {
   id: string;
   organizationId: string;
-  recordId: string;
+  recordId: string | null;
   actionType: string;
   actorId: string;
   previousState: string | null;
