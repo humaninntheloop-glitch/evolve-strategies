@@ -75,6 +75,7 @@ model User {
   reviewedRecords Record[]    @relation("ReviewedRecords")
   auditLogs      AuditLog[]
   createdApiKeys ApiKey[]
+  mappedRequirements RecordRequirement[]
 
   @@index([organizationId])
   @@map("users")
@@ -124,6 +125,7 @@ model Record {
   creator      User         @relation("CreatedRecords", fields: [creatorId], references: [id])
   reviewer     User?        @relation("ReviewedRecords", fields: [reviewerId], references: [id])
   auditLogs    AuditLog[]
+  requirements RecordRequirement[]
 
   @@index([organizationId])
   @@index([organizationId, status])
@@ -182,4 +184,39 @@ model ApiKey {
 
   @@index([organizationId])
   @@map("api_keys")
+}
+
+model ComplianceFramework {
+  id String @id @default(uuid()) @db.Uuid
+  key String @unique
+  name String
+  version String
+  requirements FrameworkRequirement[]
+  @@map("compliance_frameworks")
+}
+
+model FrameworkRequirement {
+  id String @id @default(uuid()) @db.Uuid
+  frameworkId String @map("framework_id") @db.Uuid
+  refCode String @map("ref_code")
+  title String
+  description String
+  framework ComplianceFramework @relation(fields: [frameworkId], references: [id])
+  records RecordRequirement[]
+  @@unique([frameworkId, refCode])
+  @@map("framework_requirements")
+}
+
+model RecordRequirement {
+  id String @id @default(uuid()) @db.Uuid
+  recordId String @map("record_id") @db.Uuid
+  requirementId String @map("requirement_id") @db.Uuid
+  mappedById String @map("mapped_by_id") @db.Uuid
+  mappedAt DateTime @default(now()) @map("mapped_at")
+  autoMapped Boolean @default(false) @map("auto_mapped")
+  record Record @relation(fields: [recordId], references: [id])
+  requirement FrameworkRequirement @relation(fields: [requirementId], references: [id])
+  mappedBy User @relation(fields: [mappedById], references: [id])
+  @@unique([recordId, requirementId])
+  @@map("record_requirements")
 }

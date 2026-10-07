@@ -1,5 +1,6 @@
 "use server";
 
+import { autoMapRecord } from "@/lib/compliance/mapping";
 import { revalidatePath } from "next/cache";
 import { notifyReviewWorkflow } from "@/lib/email/review-notifications";
 import { requireAuth, requireRole } from "@/lib/dal/auth";
@@ -187,75 +188,79 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
       riskJustification: riskResult.justification,
     });
 
-    // Update record with risk classification + AI summary and submit
-    await prisma.record.update({
-      where: { id: recordId },
-      data: {
-        status: "SUBMITTED",
-        reviewerId: null,
-        claimedAt: null,
-        submittedAt: new Date(),
-        riskLevel: riskResult.riskLevel,
-        riskJustification: riskResult.justification,
-        aiSummary,
-      },
-    });
+    await prisma.$transaction(async tx => {
+      // Update record with risk classification + AI summary and submit
+      const submitted = await tx.record.updateMany({
+        where: { id: recordId, organizationId: user.organizationId, status: "DRAFT" },
+        data: {
+          status: "SUBMITTED",
+          reviewerId: null,
+          claimedAt: null,
+          submittedAt: new Date(),
+          riskLevel: riskResult.riskLevel,
+          riskJustification: riskResult.justification,
+          aiSummary,
+        },
+      });
 
-    await createAuditLog({
-      organizationId: user.organizationId,
-      recordId,
-      actionType: "STATUS_CHANGE",
-      actorId: user.id,
-      previousState: "DRAFT",
-      newState: "SUBMITTED",
-      metadata: {
-        riskLevel: riskResult.riskLevel,
-        riskJustification: riskResult.justification,
-      },
-    });
+      if (submitted.count !== 1) throw new Error("Record is no longer a draft");
 
+      await tx.auditLog.create({ data: {
+        organizationId: user.organizationId,
+        recordId,
+        actionType: "STATUS_CHANGE",
+        actorId: user.id,
+        previousState: "DRAFT",
+        newState: "SUBMITTED",
+        metadata: {
+          riskLevel: riskResult.riskLevel,
+          riskJustification: riskResult.justification,
+        },
+      } });
+
+      await autoMapRecord(recordId, user.organizationId, user.id, tx);
+
+      // If LOW risk, auto-approve and auto-record
+      if (riskResult.riskLevel === "LOW") {
+        await tx.record.update({
+          where: { id: recordId },
+          data: {
+            status: "APPROVED",
+            approvedAt: new Date(),
+          },
+        });
+
+        await tx.auditLog.create({ data: {
+          organizationId: user.organizationId,
+          recordId,
+          actionType: "STATUS_CHANGE",
+          actorId: user.id,
+          previousState: "SUBMITTED",
+          newState: "APPROVED",
+          metadata: { autoApproved: true, reason: "Low risk - auto-authorized" },
+        } });
+
+        await tx.record.update({
+          where: { id: recordId },
+          data: {
+            status: "RECORDED",
+            recordedAt: new Date(),
+          },
+        });
+
+        await tx.auditLog.create({ data: {
+          organizationId: user.organizationId,
+          recordId,
+          actionType: "STATUS_CHANGE",
+          actorId: user.id,
+          previousState: "APPROVED",
+          newState: "RECORDED",
+          metadata: { autoRecorded: true, reason: "Low risk - auto-recorded" },
+        } });
+      }
+    });
     await notifyReviewWorkflow(recordId, user.organizationId, "SUBMITTED");
-
-    // If LOW risk, auto-approve and auto-record
-    if (riskResult.riskLevel === "LOW") {
-      await prisma.record.update({
-        where: { id: recordId },
-        data: {
-          status: "APPROVED",
-          approvedAt: new Date(),
-        },
-      });
-
-      await createAuditLog({
-        organizationId: user.organizationId,
-        recordId,
-        actionType: "STATUS_CHANGE",
-        actorId: user.id,
-        previousState: "SUBMITTED",
-        newState: "APPROVED",
-        metadata: { autoApproved: true, reason: "Low risk - auto-authorized" },
-      });
-
-      await notifyReviewWorkflow(recordId, user.organizationId, "APPROVED", "Low risk - auto-authorized");
-
-      await prisma.record.update({
-        where: { id: recordId },
-        data: {
-          status: "RECORDED",
-          recordedAt: new Date(),
-        },
-      });
-
-      await createAuditLog({
-        organizationId: user.organizationId,
-        recordId,
-        actionType: "STATUS_CHANGE",
-        actorId: user.id,
-        previousState: "APPROVED",
-        newState: "RECORDED",
-        metadata: { autoRecorded: true, reason: "Low risk - auto-recorded" },
-      });
-    }
+    if (riskResult.riskLevel === "LOW") await notifyReviewWorkflow(recordId, user.organizationId, "APPROVED", "Low risk - auto-authorized");
   } catch (error) {
     return { success: false, error: handleActionError(error) };
   }
