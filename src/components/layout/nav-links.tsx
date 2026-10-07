@@ -11,6 +11,7 @@ import {
   GearSix,
   Buildings,
   Flask,
+  Key,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types";
@@ -30,6 +31,7 @@ const links: NavLink[] = [
   { href: "/review", label: "AI Authorization Review", icon: ClipboardText, roles: ["REVIEWER", "ADMIN"], section: "Workflow" },
   { href: "/audit-log", label: "Audit Log", icon: Scroll, roles: ["ADMIN"], section: "Workflow" },
   { href: "/admin/users", label: "Users", icon: Users, roles: ["ADMIN"], section: "Admin" },
+  { href: "/admin/api-keys", label: "API Keys", icon: Key, roles: ["ADMIN"], section: "Admin" },
   { href: "/admin", label: "Settings", icon: GearSix, roles: ["ADMIN"], section: "Admin" },
   { href: "/platform", label: "Organizations", icon: Buildings, section: "Platform", superAdminOnly: true },
   { href: "/platform/demo-accounts", label: "Demo Accounts", icon: Flask, section: "Platform", superAdminOnly: true },

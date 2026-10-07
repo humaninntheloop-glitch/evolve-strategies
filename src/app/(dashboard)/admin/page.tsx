@@ -4,7 +4,7 @@ import { getDashboardStats } from "@/lib/dal/records";
 import { getUsersByOrg } from "@/lib/dal/users";
 import { Card } from "@/components/ui/card";
 import { OrgNameForm } from "@/components/admin/org-name-form";
-import { Users, ChartBar, ArrowRight } from "@phosphor-icons/react/ssr";
+import { Users, ChartBar, Key, ArrowRight } from "@phosphor-icons/react/ssr";
 import { cn } from "@/lib/utils";
 
 export default async function AdminPage() {
@@ -30,6 +30,14 @@ export default async function AdminPage() {
       icon: ChartBar,
       iconColor: "text-emerald-600 dark:text-emerald-400",
       iconBg: "bg-emerald-50 dark:bg-emerald-900/30",
+    },
+    {
+      href: "/admin/api-keys",
+      title: "API Keys",
+      description: "Machine credentials for integrations",
+      icon: Key,
+      iconColor: "text-violet-600 dark:text-violet-400",
+      iconBg: "bg-violet-50 dark:bg-violet-900/30",
     },
   ];
 
