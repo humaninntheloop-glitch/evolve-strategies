@@ -1,3 +1,4 @@
+import { ChainControls } from "./chain-controls";
 import { requireRole } from "@/lib/dal/auth";
 import { getAuditLogsByOrg } from "@/lib/dal/audit-logs";
 import { Card } from "@/components/ui/card";
@@ -30,6 +31,8 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
           Complete activity log for your organization ({total} entries)
         </p>
       </div>
+
+      <ChainControls isSuperAdmin={user.isSuperAdmin} />
 
       {logs.length === 0 ? (
         <Card>

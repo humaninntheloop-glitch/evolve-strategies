@@ -1,3 +1,4 @@
+import { createAuditLog } from "@/lib/dal/audit-logs";
 import { NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { z } from "zod";
@@ -229,7 +230,7 @@ export async function POST(request: Request) {
         select: { id: true },
       });
 
-      await tx.auditLog.create({ data: {
+      await createAuditLog({
         organizationId: principal.organizationId,
         recordId: record.id,
         actionType: "RECORD_CREATED_VIA_EXTENSION",
@@ -239,7 +240,7 @@ export async function POST(request: Request) {
           sourceUrl: data.sourceUrl ?? null,
           capturedAt: data.capturedAt ?? null,
         },
-      } });
+      }, tx);
       if (data.submit) {
         const transition = validateTransition({
           currentStatus: "DRAFT", targetStatus: "SUBMITTED",
@@ -265,25 +266,25 @@ export async function POST(request: Request) {
           },
         });
         if (submitted.count !== 1) throw new Error("Reliance event submission rejected");
-        await tx.auditLog.create({ data: {
+        await createAuditLog({
           organizationId: principal.organizationId, recordId: record.id, actorId: principal.id,
           actionType: "STATUS_CHANGE", previousState: "DRAFT", newState: "SUBMITTED",
           metadata: { riskLevel: riskResult.riskLevel, riskJustification: riskResult.justification },
-        } });
+        }, tx);
         terminalStatus = "SUBMITTED";
         if (riskResult.riskLevel === "LOW") {
           await tx.record.update({ where: { id: record.id }, data: { status: "APPROVED", approvedAt: new Date() } });
-          await tx.auditLog.create({ data: {
+          await createAuditLog({
             organizationId: principal.organizationId, recordId: record.id, actorId: principal.id,
             actionType: "STATUS_CHANGE", previousState: "SUBMITTED", newState: "APPROVED",
             metadata: { autoApproved: true, reason: "Low risk - auto-authorized" },
-          } });
+          }, tx);
           await tx.record.update({ where: { id: record.id }, data: { status: "RECORDED", recordedAt: new Date() } });
-          await tx.auditLog.create({ data: {
+          await createAuditLog({
             organizationId: principal.organizationId, recordId: record.id, actorId: principal.id,
             actionType: "STATUS_CHANGE", previousState: "APPROVED", newState: "RECORDED",
             metadata: { autoRecorded: true, reason: "Low risk - auto-recorded" },
-          } });
+          }, tx);
           terminalStatus = "RECORDED";
         }
       }

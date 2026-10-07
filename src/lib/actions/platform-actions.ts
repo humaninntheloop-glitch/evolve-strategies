@@ -1,5 +1,7 @@
 "use server";
 
+import { createAuditLog } from "@/lib/dal/audit-logs";
+
 import { revalidatePath } from "next/cache";
 import { requireSuperAdmin } from "@/lib/dal/auth";
 import { createServiceClient } from "@/lib/supabase/server";
@@ -315,8 +317,8 @@ export async function updateOrgUserRole(orgId: string, userId: string, role: Use
       if (!user) throw new Error("User does not belong to this organization");
       const changed = await tx.user.updateMany({ where: { id: userId, organizationId: orgId }, data: { role } });
       if (changed.count !== 1) throw new Error("User organization changed; refresh and try again");
-      await tx.auditLog.create({ data: { organizationId: orgId, actorId: actor.id, actionType: "USER_ROLE_CHANGED",
-        metadata: { userId, previousRole: user.role, role } } });
+      await createAuditLog({ organizationId: orgId, actorId: actor.id, actionType: "USER_ROLE_CHANGED",
+        metadata: { userId, previousRole: user.role, role } }, tx);
     });
     revalidatePath(`/platform/organizations/${orgId}`);
     return { success: true, data: undefined };
@@ -335,8 +337,8 @@ export async function toggleOrgUserActive(orgId: string, userId: string, isActiv
       if (!user) throw new Error("User does not belong to this organization");
       const changed = await tx.user.updateMany({ where: { id: userId, organizationId: orgId }, data: { isActive } });
       if (changed.count !== 1) throw new Error("User organization changed; refresh and try again");
-      await tx.auditLog.create({ data: { organizationId: orgId, actorId: actor.id, actionType: "USER_ACTIVE_CHANGED",
-        metadata: { userId, previousIsActive: user.isActive, isActive } } });
+      await createAuditLog({ organizationId: orgId, actorId: actor.id, actionType: "USER_ACTIVE_CHANGED",
+        metadata: { userId, previousIsActive: user.isActive, isActive } }, tx);
     });
     revalidatePath(`/platform/organizations/${orgId}`);
     return { success: true, data: undefined };
@@ -359,10 +361,10 @@ export async function moveUserToOrg(userId: string, targetOrgId: string): Promis
       // moves; future records inherit the user's new organization.
       const changed = await tx.user.updateMany({ where: { id: userId, organizationId: user.organizationId }, data: { organizationId: targetOrgId } });
       if (changed.count !== 1) throw new Error("User organization changed; refresh and try again");
-      await tx.auditLog.create({ data: { organizationId: user.organizationId, actorId: actor.id,
-        actionType: "USER_MOVED_ORGANIZATION", metadata: { userId, sourceOrgId: user.organizationId, targetOrgId } } });
-      await tx.auditLog.create({ data: { organizationId: targetOrgId, actorId: actor.id,
-        actionType: "USER_MOVED_ORGANIZATION", metadata: { userId, sourceOrgId: user.organizationId, targetOrgId } } });
+      await createAuditLog({ organizationId: user.organizationId, actorId: actor.id,
+        actionType: "USER_MOVED_ORGANIZATION", metadata: { userId, sourceOrgId: user.organizationId, targetOrgId } }, tx);
+      await createAuditLog({ organizationId: targetOrgId, actorId: actor.id,
+        actionType: "USER_MOVED_ORGANIZATION", metadata: { userId, sourceOrgId: user.organizationId, targetOrgId } }, tx);
       return user.organizationId;
     });
     revalidatePath(`/platform/organizations/${sourceOrgId}`);
@@ -399,8 +401,8 @@ export async function inviteUserToOrg(orgId: string, email: string, fullName: st
       setupLink = `${siteUrl}/auth/callback?token_hash=${encodeURIComponent(hashedToken)}&type=recovery&next=/reset-password`;
       await prisma.$transaction(async tx => {
         await tx.user.create({ data: { id: userId, organizationId: orgId, ...parsed.data } });
-        await tx.auditLog.create({ data: { organizationId: orgId, actorId: actor.id, actionType: "USER_INVITED",
-          metadata: { userId, role: parsed.data.role } } });
+        await createAuditLog({ organizationId: orgId, actorId: actor.id, actionType: "USER_INVITED",
+          metadata: { userId, role: parsed.data.role } }, tx);
       });
     } catch (error) {
       const { error: cleanupError } = await supabase.auth.admin.deleteUser(userId);

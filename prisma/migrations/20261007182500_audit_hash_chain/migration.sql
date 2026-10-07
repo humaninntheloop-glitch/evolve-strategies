@@ -1,0 +1,14 @@
+-- Nullable until explicit one-off backfill. Writer refuses unbackfilled tails.
+ALTER TABLE "audit_logs" ADD COLUMN "prev_hash" TEXT, ADD COLUMN "hash" TEXT;
+-- Operations: hand-apply SQL, then reconcile migration history using
+-- prisma migrate resolve --applied 20261007182500_audit_hash_chain
+-- Deploy during a maintenance window: new writer rejects legacy unchained tails.
+-- Sign in as a super-admin with ADMIN role; Audit Log -> Backfill existing chain
+-- runs once across all orgs under an exclusive table lock. Back up first.
+-- Backfill requires table-owner privileges to temporarily disable the append-only
+-- trigger. The trigger is restored atomically; a failure rolls everything back.
+-- After backfill use Verify chain. Never rerun to hide a broken chain.
+-- Formula uses null recordId as empty string, timestamp UTC ISO milliseconds,
+-- metadata recursively sorted by object key (arrays preserve order; null='null').
+-- Fields excluded by requested formula (states/orgId/row id) are NOT authenticated.
+-- Retain exported chain heads externally to detect tail truncation/full rewrites.

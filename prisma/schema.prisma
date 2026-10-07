@@ -136,6 +136,8 @@ model Record {
 }
 
 model AuditLog {
+  prevHash String? @map("prev_hash")
+  hash String?
   id             String   @id @default(uuid()) @db.Uuid
   organizationId String   @map("organization_id") @db.Uuid
   recordId       String?  @map("record_id") @db.Uuid

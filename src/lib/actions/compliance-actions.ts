@@ -1,4 +1,6 @@
 "use server";
+
+import { createAuditLog } from "@/lib/dal/audit-logs";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole } from "@/lib/dal/auth";
@@ -19,8 +21,8 @@ export async function setRecordRequirement(recordId: string, requirementId: stri
         create: { recordId, requirementId, mappedById: actor.id, autoMapped: false },
         update: { mappedById: actor.id, mappedAt: new Date(), autoMapped: false } });
       else await tx.recordRequirement.deleteMany({ where: { recordId, requirementId } });
-      await tx.auditLog.create({ data: { organizationId: actor.organizationId, recordId, actorId: actor.id,
-        actionType: included ? "REQUIREMENT_CONFIRMED" : "REQUIREMENT_REMOVED", metadata: { requirementId, refCode: requirement.refCode } } });
+      await createAuditLog({ organizationId: actor.organizationId, recordId, actorId: actor.id,
+        actionType: included ? "REQUIREMENT_CONFIRMED" : "REQUIREMENT_REMOVED", metadata: { requirementId, refCode: requirement.refCode } }, tx);
     });
     revalidatePath(`/permission-slips/${recordId}`);
     return { success: true, data: undefined };

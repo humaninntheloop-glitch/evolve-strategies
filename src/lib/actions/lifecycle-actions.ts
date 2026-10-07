@@ -205,7 +205,7 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
 
       if (submitted.count !== 1) throw new Error("Record is no longer a draft");
 
-      await tx.auditLog.create({ data: {
+      await createAuditLog({
         organizationId: user.organizationId,
         recordId,
         actionType: "STATUS_CHANGE",
@@ -216,7 +216,7 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
           riskLevel: riskResult.riskLevel,
           riskJustification: riskResult.justification,
         },
-      } });
+      }, tx);
 
       await autoMapRecord(recordId, user.organizationId, user.id, tx);
 
@@ -230,7 +230,7 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
           },
         });
 
-        await tx.auditLog.create({ data: {
+        await createAuditLog({
           organizationId: user.organizationId,
           recordId,
           actionType: "STATUS_CHANGE",
@@ -238,7 +238,7 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
           previousState: "SUBMITTED",
           newState: "APPROVED",
           metadata: { autoApproved: true, reason: "Low risk - auto-authorized" },
-        } });
+        }, tx);
 
         await tx.record.update({
           where: { id: recordId },
@@ -248,7 +248,7 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
           },
         });
 
-        await tx.auditLog.create({ data: {
+        await createAuditLog({
           organizationId: user.organizationId,
           recordId,
           actionType: "STATUS_CHANGE",
@@ -256,7 +256,7 @@ export async function submitRecord(recordId: string): Promise<ActionResult> {
           previousState: "APPROVED",
           newState: "RECORDED",
           metadata: { autoRecorded: true, reason: "Low risk - auto-recorded" },
-        } });
+        }, tx);
       }
     });
     await notifyReviewWorkflow(recordId, user.organizationId, "SUBMITTED");
@@ -336,9 +336,9 @@ async function recordReviewDecision(recordId: string, decision: "APPROVED" | "RE
       }
       const rationale = [options.decisionRationale, options.decisionRationaleOther, options.reviewComment].filter(Boolean).join(" — ");
       await tx.recordApproval.create({ data: { recordId, approverId: actor.id, decision, rationale } });
-      await tx.auditLog.create({ data: { organizationId: actor.organizationId, recordId, actorId: actor.id,
+      await createAuditLog({ organizationId: actor.organizationId, recordId, actorId: actor.id,
         actionType: "REVIEW_DECISION", metadata: { decision, rationale, reviewComment: options.reviewComment ?? null,
-          validationReference: options.validationReference ?? [], validationReferenceOther: options.validationReferenceOther ?? null } } });
+          validationReference: options.validationReference ?? [], validationReferenceOther: options.validationReferenceOther ?? null } }, tx);
       const approvals = await tx.recordApproval.count({ where: { recordId, decision: "APPROVED" } });
       const required = record.riskLevel === "HIGH" ? 2 : 1;
       if (decision === "APPROVED" && approvals < required) return null;
@@ -354,17 +354,17 @@ async function recordReviewDecision(recordId: string, decision: "APPROVED" | "RE
         reviewerValidationReferenceOther: options.validationReferenceOther ?? null,
         ...(decision === "APPROVED" ? { approvedAt: new Date() } : { rejectedAt: new Date() }),
       } });
-      await tx.auditLog.create({ data: { organizationId: actor.organizationId, recordId, actorId: actor.id,
+      await createAuditLog({ organizationId: actor.organizationId, recordId, actorId: actor.id,
         actionType: "STATUS_CHANGE", previousState: "SUBMITTED", newState: decision,
         metadata: { approvalCount: approvals, requiredApprovals: required, reviewComment: options.reviewComment ?? null,
-          decisionRationale: options.decisionRationale } } });
+          decisionRationale: options.decisionRationale } }, tx);
       // HIGH gates stop at APPROVED; existing single-approver auto-finalization
       // is preserved for non-HIGH slips. LOW system auto-path is unchanged.
       if (decision === "APPROVED" && record.riskLevel !== "HIGH") {
         await tx.record.update({ where: { id: recordId }, data: { status: "RECORDED", recordedAt: new Date() } });
-        await tx.auditLog.create({ data: { organizationId: actor.organizationId, recordId, actorId: actor.id,
+        await createAuditLog({ organizationId: actor.organizationId, recordId, actorId: actor.id,
           actionType: "STATUS_CHANGE", previousState: "APPROVED", newState: "RECORDED",
-          metadata: { reason: "Recorded after reviewer approval" } } });
+          metadata: { reason: "Recorded after reviewer approval" } }, tx);
       }
       return decision;
     });
@@ -392,10 +392,10 @@ export async function claimRecord(recordId: string): Promise<ActionResult> {
         data: { reviewerId: user.id, claimedAt: new Date() },
       });
       if (result.count !== 1) return false;
-      await tx.auditLog.create({ data: {
+      await createAuditLog({
         organizationId: user.organizationId, recordId, actorId: user.id,
         actionType: "RECORD_CLAIMED", previousState: "SUBMITTED", newState: "SUBMITTED",
-      } });
+      }, tx);
       return true;
     });
     if (!claimed) return { success: false, error: "Record is unavailable or already claimed" };
@@ -419,10 +419,10 @@ export async function unclaimRecord(recordId: string): Promise<ActionResult> {
         data: { reviewerId: null, claimedAt: null },
       });
       if (result.count !== 1) return false;
-      await tx.auditLog.create({ data: {
+      await createAuditLog({
         organizationId: user.organizationId, recordId, actorId: user.id,
         actionType: "RECORD_UNCLAIMED", previousState: "SUBMITTED", newState: "SUBMITTED",
-      } });
+      }, tx);
       return true;
     });
     if (!unclaimed) return { success: false, error: "Record is unavailable or cannot be unclaimed by you" };
