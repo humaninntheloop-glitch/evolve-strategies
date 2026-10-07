@@ -232,47 +232,30 @@ export async function deleteOrganization(
 ): Promise<ActionResult> {
   await requireSuperAdmin();
 
-  const org = await prisma.organization.findUnique({
-    where: { id: organizationId },
-    select: { id: true, isDemo: true, _count: { select: { users: true, records: true } } },
-  });
-
-  if (!org) {
-    return { success: false, error: "Organization not found" };
-  }
-
-  if (!org.isDemo) {
-    return { success: false, error: "Can only delete demo organizations" };
-  }
-
-  if (org._count.records > 0) {
-    return { success: false, error: "Cannot delete organization with existing records. Delete records first." };
-  }
-
   try {
-    const supabase = createServiceClient();
-
-    // Delete all users in the org from Supabase auth + DB
-    const users = await prisma.user.findMany({
-      where: { organizationId },
-      select: { id: true },
-    });
-
-    for (const user of users) {
-      await supabase.auth.admin.deleteUser(user.id);
-    }
-
-    // Cascade: users, risk categories, then org
-    await prisma.$transaction(async (tx) => {
-      await tx.user.deleteMany({ where: { organizationId } });
+    await prisma.$transaction(async tx => {
+      const org = await tx.organization.findUnique({ where: { id: organizationId },
+        select: { id: true, _count: { select: { users: true, records: true } } } });
+      if (!org) throw new Error("Organization not found");
+      if (org._count.users > 0 || org._count.records > 0) {
+        throw new Error("Cannot delete organization with members or records. Move members first; existing records must be retained.");
+      }
+      // Never delete members, Supabase accounts, or reliance records here.
+      // Retained audit events / keys also block deletion rather than being erased.
+      if (await tx.auditLog.count({ where: { organizationId } }) ||
+          await tx.apiKey.count({ where: { organizationId } })) {
+        throw new Error("Cannot delete organization with retained audit history or API keys");
+      }
       await tx.riskCategory.deleteMany({ where: { organizationId } });
       await tx.organization.delete({ where: { id: organizationId } });
-    });
-
+    }, { isolationLevel: "Serializable" });
     revalidatePath("/platform");
     revalidatePath("/platform/demo-accounts");
     return { success: true, data: undefined };
   } catch (error) {
+    if (error instanceof Error && (error.message.startsWith("Cannot delete organization") || error.message === "Organization not found")) {
+      return { success: false, error: error.message };
+    }
     return { success: false, error: handleActionError(error) };
   }
 }
@@ -415,5 +398,23 @@ export async function inviteUserToOrg(orgId: string, email: string, fullName: st
     revalidatePath(`/platform/organizations/${orgId}`);
     revalidatePath("/platform");
     return { success: true, data: emailSent ? "" : setupLink };
+  } catch (error) { return { success: false, error: handleActionError(error) }; }
+}
+
+export async function updatePlatformOrganization(orgId: string, name: string, isDemo: boolean): Promise<ActionResult> {
+  const actor = await requireSuperAdmin();
+  const parsed = z.object({ id: z.string().uuid(), name: z.string().trim().min(2).max(100), isDemo: z.boolean() }).safeParse({ id: orgId, name, isDemo });
+  if (!parsed.success) return { success: false, error: "Enter a valid organization name (2–100 characters)" };
+  try {
+    await prisma.$transaction(async tx => {
+      const org = await tx.organization.findUnique({ where: { id: orgId } });
+      if (!org) throw new Error("Organization not found");
+      await tx.organization.update({ where: { id: orgId }, data: { name: parsed.data.name, isDemo } });
+      await tx.auditLog.create({ data: { organizationId: orgId, actorId: actor.id, actionType: "ORGANIZATION_UPDATED",
+        metadata: { previousName: org.name, name: parsed.data.name, previousIsDemo: org.isDemo, isDemo } } });
+    });
+    revalidatePath("/platform");
+    revalidatePath(`/platform/organizations/${orgId}`);
+    return { success: true, data: undefined };
   } catch (error) { return { success: false, error: handleActionError(error) }; }
 }
