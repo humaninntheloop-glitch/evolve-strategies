@@ -54,6 +54,7 @@ model Organization {
   records        Record[]
   auditLogs      AuditLog[]
   riskCategories RiskCategory[]
+  apiKeys        ApiKey[]
 
   @@map("organizations")
 }
@@ -73,6 +74,7 @@ model User {
   createdRecords Record[]     @relation("CreatedRecords")
   reviewedRecords Record[]    @relation("ReviewedRecords")
   auditLogs      AuditLog[]
+  createdApiKeys ApiKey[]
 
   @@index([organizationId])
   @@map("users")
@@ -161,4 +163,22 @@ model RiskCategory {
 
   @@index([organizationId])
   @@map("risk_categories")
+}
+
+model ApiKey {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  createdById    String    @map("created_by_id") @db.Uuid
+  name           String
+  keyHash        String    @unique @map("key_hash")
+  keyPrefix      String    @map("key_prefix")
+  lastUsedAt     DateTime? @map("last_used_at")
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  createdBy    User         @relation(fields: [createdById], references: [id])
+
+  @@index([organizationId])
+  @@map("api_keys")
 }

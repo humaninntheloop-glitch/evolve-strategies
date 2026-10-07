@@ -1,7 +1,11 @@
-import { type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
+  // Machine endpoint authenticates its own API key, not a browser session.
+  if (request.nextUrl.pathname === "/api/v1/reliance-events") {
+    return NextResponse.next();
+  }
   return await updateSession(request);
 }
 
