@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { DeleteOrgButton } from "@/components/platform/delete-org-button";
 import { formatDate } from "@/lib/utils";
@@ -44,7 +45,7 @@ export function OrganizationTable({ organizations }: OrganizationTableProps) {
         <tbody className="divide-y divide-border-subtle">
           {organizations.map((org) => (
             <tr key={org.id} className="transition-colors duration-150 hover:bg-surface-inset">
-              <td className="px-4 py-3.5 text-sm font-medium text-on-surface">{org.name}</td>
+              <td className="px-4 py-3.5 text-sm font-medium text-on-surface"><Link href={`/platform/organizations/${org.id}`} className="underline underline-offset-4">{org.name}</Link></td>
               <td className="px-4 py-3.5 text-sm font-mono text-on-surface-secondary">{org.slug}</td>
               <td className="px-4 py-3.5">
                 {org.isDemo ? (

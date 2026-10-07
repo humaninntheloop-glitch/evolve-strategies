@@ -134,7 +134,7 @@ model Record {
 model AuditLog {
   id             String   @id @default(uuid()) @db.Uuid
   organizationId String   @map("organization_id") @db.Uuid
-  recordId       String   @map("record_id") @db.Uuid
+  recordId       String?  @map("record_id") @db.Uuid
   actionType     String   @map("action_type")
   actorId        String   @map("actor_id") @db.Uuid
   previousState  String?  @map("previous_state")
@@ -143,7 +143,7 @@ model AuditLog {
   timestamp      DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id])
-  record       Record       @relation(fields: [recordId], references: [id])
+  record       Record?      @relation(fields: [recordId], references: [id])
   actor        User         @relation(fields: [actorId], references: [id])
 
   @@index([organizationId])
