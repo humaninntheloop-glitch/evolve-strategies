@@ -76,6 +76,7 @@ model User {
   auditLogs      AuditLog[]
   createdApiKeys ApiKey[]
   mappedRequirements RecordRequirement[]
+  approvals RecordApproval[]
 
   @@index([organizationId])
   @@map("users")
@@ -126,6 +127,7 @@ model Record {
   reviewer     User?        @relation("ReviewedRecords", fields: [reviewerId], references: [id])
   auditLogs    AuditLog[]
   requirements RecordRequirement[]
+  approvals RecordApproval[]
 
   @@index([organizationId])
   @@index([organizationId, status])
@@ -219,4 +221,22 @@ model RecordRequirement {
   mappedBy User @relation(fields: [mappedById], references: [id])
   @@unique([recordId, requirementId])
   @@map("record_requirements")
+}
+
+enum ApprovalDecision {
+  APPROVED
+  REJECTED
+}
+
+model RecordApproval {
+  id String @id @default(uuid()) @db.Uuid
+  recordId String @map("record_id") @db.Uuid
+  approverId String @map("approver_id") @db.Uuid
+  decision ApprovalDecision
+  rationale String
+  createdAt DateTime @default(now()) @map("created_at")
+  record Record @relation(fields: [recordId], references: [id])
+  approver User @relation(fields: [approverId], references: [id])
+  @@unique([recordId, approverId])
+  @@map("record_approvals")
 }
