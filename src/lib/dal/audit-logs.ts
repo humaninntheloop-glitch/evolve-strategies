@@ -21,7 +21,9 @@ export async function createAuditLog(data: {
   previousState?: string | null; newState?: string | null; metadata?: Record<string, unknown>;
 }, transaction?: Prisma.TransactionClient) {
   const write = async (tx: Prisma.TransactionClient) => {
-    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${data.organizationId}, 0))`;
+    // $executeRaw (not $queryRaw): pg_advisory_xact_lock returns void, which
+    // Prisma cannot deserialize as a result column (P2010).
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${data.organizationId}, 0))`;
     const tail = await tx.auditLog.findFirst({ where: { organizationId: data.organizationId }, orderBy: [{ timestamp: "desc" }, { id: "desc" }] });
     if (tail && !tail.hash) throw new Error("Audit chain requires backfill before new writes");
     const timestamp = new Date(Math.max(Date.now(), (tail?.timestamp.getTime() ?? 0) + 1));
