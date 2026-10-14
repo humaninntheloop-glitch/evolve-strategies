@@ -6,6 +6,10 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname === "/api/v1/reliance-events") {
     return NextResponse.next();
   }
+  // Self-hosted extension downloads are public files.
+  if (request.nextUrl.pathname.startsWith("/downloads")) {
+    return NextResponse.next();
+  }
   return await updateSession(request);
 }
 
